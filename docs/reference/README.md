@@ -5,6 +5,8 @@ investigation — lives in [`../spec/`](../spec/README.md), [`../plan/`](../plan
 [`../debug/`](../debug/README.md), or [`../audit/`](../audit/README.md), not here.
 
 - **[glossary.md](glossary.md)** — canonical vocabulary; read first.
+- **[upstream.md](upstream.md)** — `confy-core`'s pin, reachable API, index spaces, and the
+  upstream changes confyg requires. Canonical for every fact about the dependency.
 
 Machine-checked: none yet.
 

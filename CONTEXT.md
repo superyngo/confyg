@@ -16,10 +16,12 @@ Entry point for all documentation. Root-level files (`README.md`, `CHANGELOG.md`
 ## Reading order
 
 1. [`docs/reference/glossary.md`](docs/reference/glossary.md) — the vocabulary every other file uses.
-2. [`docs/reference/README.md`](docs/reference/README.md) — the subsystem map.
-3. [`docs/adr/README.md`](docs/adr/README.md) — why the shape is what it is.
-4. [`docs/spec/README.md`](docs/spec/README.md) — the design records.
-5. `CHANGELOG.md` — what changed recently.
+2. [`docs/reference/upstream.md`](docs/reference/upstream.md) — what `confy-core` actually
+   provides, and the two changes confyg needs from it.
+3. [`docs/reference/README.md`](docs/reference/README.md) — the subsystem map.
+4. [`docs/adr/README.md`](docs/adr/README.md) — why the shape is what it is.
+5. [`docs/spec/README.md`](docs/spec/README.md) — the design records.
+6. `CHANGELOG.md` — what changed recently.
 
 ## Upstream
 

@@ -2,6 +2,13 @@
 
 Date: 2026-09-03
 
+> **Erratum, 2026-09-04.** Two facts quoted below are wrong and are corrected in
+> [`../reference/upstream.md`](../reference/upstream.md), which is canonical for them: the tag
+> `v1.0.1` was never pushed (confy's newest tag is `v1.0.0`, and no released tag carries the
+> `session` feature this decision requires), and `confy-core/model/**` is ~21,500 lines across
+> all three backends rather than ~11,000. Neither changes the decision — the second strengthens
+> it. The dependency line below is superseded by that file.
+
 ## Decision
 
 confyg is a separate repository that depends on
