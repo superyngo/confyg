@@ -4,6 +4,8 @@
 //! `(&serde_json::Value, ...)`. `confy_core::session` is never referenced.
 
 pub mod affordance;
+pub mod compile;
+pub mod constraint;
 pub mod facts;
 pub mod ir;
 pub mod notice;

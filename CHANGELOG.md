@@ -93,3 +93,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `resolve` is derive → override → clamp against `HostProfile`. A clamp substitutes but keeps
   `intended` and emits a Notice, so `filterable-menu` legitimately renders as `menu` in v0.1 and
   an unmaskable `writeOnly` value says so rather than silently revealing itself.
+- 2026-09-04 — Added `crates/confyg-form/src/compile.rs` and `constraint.rs`: design §4 steps
+  1, 2, 4 and 5 — `$ref` resolution with a visited-pointer set cutting cycles into
+  `FormNode::Cyclic`, left-to-right `allOf` merging that keeps the narrowest bound and
+  diagnoses the rest, classification into Group / Repeat / Field with every v0.1-excluded
+  construct (`prefixItems`, `oneOf`, `anyOf`, `additionalProperties` as a schema,
+  `patternProperties`) becoming an Unknown node plus a Notice naming its tier, and sibling
+  order from the Schema file overridable by `x-confyg.order` with `demoted` sinking and no
+  required-hoisting. `SchemaState.validatable` records the `Validator::new` failure so an
+  uncompilable `pattern` costs the document its validation, not its form. Snapshots compile the
+  checked-in `eslintrc.json` fixture on two Host capability profiles.
