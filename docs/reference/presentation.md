@@ -147,7 +147,29 @@ honesty as the `#[ignore]`d byte test in [`crates.md`](crates.md). Driving Chrom
 picker is not automatable, and shimming `FileSystemFileHandle` would test the shim.
 
 The session never fetches: a `SchemaFetchRequest` in a snapshot is resolved by the host and
-dispatched back as `loadSchema`.
+dispatched back as `loadSchema`. **v0.1's web host does not yet act on that field** — it is
+declared in `types.ts` and honored by `--example try`, but `main.ts` has no branch for it, so a
+document whose `$schema`/`#:schema` hint is the only thing naming its Schema renders no form.
+The two entry points that do work are the **Schema** button and the boot sample below.
+
+## The boot sample
+
+A bare page load is a form, not an empty pane. `web/src/samples.ts` imports
+`confyg-session/examples/demo.{schema.json,toml}` as text (`?raw`) and `main.ts` dispatches two
+commands in order — `loadSchema`, then `open`, because the Schema is what makes a Form IR and an
+`open` without one renders nothing.
+
+It is deliberately **not a new fixture**. It is the pair `--example try` drives and
+`confyg-form/tests/snapshot.rs` pins, so the sample cannot drift from what the compiler is
+tested against, and its teaching edges are already there: an out-of-range `port` (an Invalid
+field), an unknown `colour` (preserved, not dropped), `tags` at its floor, `servers` at its
+ceiling, an absent optional `tls` Group, and a description whose wording its key never says.
+The Schema arrives as bytes rather than through the sample's own hint, because of the
+unimplemented fetch above.
+
+`inSampleMode()` latches while the open document has no backing file, and mirrors onto
+`body.sample`. Opening a real file or saving drops it: `Save` must not offer to write back over
+a path the user never chose.
 
 ## A known defect
 

@@ -2,6 +2,7 @@
 // the core hands back. The host owns file I/O and the theme; every form decision is the
 // core's, arriving as a `SetterSnapshot`.
 import { Boundary } from "./boundary.js";
+import { SAMPLE, setSampleMode } from "./samples.js";
 import { formatFromName, initTheme, saveText, toggleTheme, type DocFormat } from "./host-io.js";
 import { applyStaticI18n } from "./i18n.js";
 import { render, reveal, type HostCtx } from "./render.js";
@@ -84,12 +85,15 @@ openInput.addEventListener("change", async () => {
   show(
     boundary.dispatch({ command: { open: { text: await file.text(), fmt, path: file.name } } }),
   );
+  setSampleMode(false);
 });
 
 document.getElementById("save")?.addEventListener("click", async () => {
   if (!boundary) return;
   show(boundary.dispatch({ command: "save" }));
   handle = await saveText(text, fmt, name, handle);
+  // Saved bytes have a name behind them now, sample or not.
+  setSampleMode(false);
 });
 
 // The session never fetches a Schema; the host does, and dispatches the bytes back.
@@ -127,3 +131,20 @@ searchInput.addEventListener("input", () => {
 });
 
 boundary = await Boundary.load();
+
+// A fresh page opens the built-in sample rather than an empty pane, so the form is
+// something to look at before any file exists. Two dispatches, in this order: the Schema
+// is what makes a Form IR, and `open` without one would render nothing.
+show(
+  boundary.dispatch({
+    command: { loadSchema: { source: { Local: SAMPLE.schemaName }, text: SAMPLE.schemaText } },
+  }),
+);
+fmt = SAMPLE.fmt;
+name = SAMPLE.docName;
+show(
+  boundary.dispatch({
+    command: { open: { text: SAMPLE.docText, fmt, path: SAMPLE.docName } },
+  }),
+);
+setSampleMode(true);

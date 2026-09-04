@@ -87,7 +87,7 @@ Five CI jobs, each pinning an invariant rather than a style:
 | `web/src/repeat.test.ts` | The count badge, both bounds gates at the fixture's own ceiling and floor, cards vs scalar rows, and the entry index a card publishes |
 | `web/src/summary.test.ts` | An uncompilable Schema reads *validation unavailable*, never *no problems* |
 | `web/src/search.test.ts` | A hit maps to the section holding it, and the host preserves the compiler's order |
-| `tests/e2e/first-run.spec.ts` | The whole flow on the built artifact — open → add a Repeat item → set values → Unset one → save — asserting the *emitted bytes* (design §11 item 5) |
+| `tests/e2e/first-run.spec.ts` | The whole flow on the built artifact - open -> add a Repeat item -> set values -> Unset one -> save - asserting the *emitted bytes* (design §11 item 5), and that a bare load renders the boot sample rather than an empty pane |
 
 One test is `#[ignore]`d on purpose: `a_delete_keeps_the_blank_line_that_separates_a_comment_block`
 asserts the bytes upstream bill item 3 will make possible. `cargo test -- --ignored` shows what is

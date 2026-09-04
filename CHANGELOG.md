@@ -263,6 +263,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   absent from its key. `web/src/__fixtures__/demo-snapshot.json` is regenerated from them, so
   both bounds gates, both item shapes and the non-key search axis are pinned against real core
   output rather than a hand-built IR.
+- 2026-09-04 — A bare page load is now a form rather than an empty pane. `web/src/samples.ts`
+  imports `confyg-session/examples/demo.{schema.json,toml}` as text and `main.ts` dispatches
+  `loadSchema` then `open` at boot, in that order — the Schema is what makes a **Form IR**, and
+  an `open` without one renders nothing. Deliberately not a new fixture: it is the pair
+  `--example try` drives and `confyg-form/tests/snapshot.rs` pins, so the sample cannot drift
+  from what the compiler is tested against, and every teaching edge is already in it — an
+  out-of-range `port`, an unknown `colour` kept exactly as written, `tags` at its floor,
+  `servers` at its ceiling, an absent optional `tls` **Group**. Modelled on confy's
+  `web/samples.ts`, minus its `#:schema` route: confyg's host does not yet act on the
+  `SchemaFetchRequest` a hint produces, so the Schema is dispatched as bytes and the gap is
+  written down in [`docs/reference/presentation.md`](docs/reference/presentation.md) rather than
+  half-implemented. `inSampleMode()` latches while the document has no backing file and drops on
+  a real open or a save, so `Save` never offers to write back over a path the user never chose.
+  The e2e suite gained the assertion that a bare load renders nodes — which would have caught
+  the WASM-glue defect on its own.
 - 2026-09-04 — Phase B, Task 20: the **real-binary check**, design §11 item 5. Playwright at the
   repo root (`playwright.config.ts`, `tests/e2e/first-run.spec.ts`) drives the whole flow —
   open → add a **Repeat group** item → set values → **Unset** one → save — against

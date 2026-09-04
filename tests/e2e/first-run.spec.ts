@@ -48,6 +48,21 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
+// A bare page load renders the built-in sample. This is the assertion that would have
+// caught finding 1 on its own: with the glue unresolvable the boundary never loads, so
+// there is no snapshot, no nodes, and an empty pane — which every unit test above this
+// one reads as fine, because it renders a captured snapshot instead of booting.
+test("a bare load renders the sample, not an empty pane", async ({ page }) => {
+  await expect(page.locator(".node.field").first()).toBeVisible();
+  expect(await page.locator(".node.field").count()).toBeGreaterThan(0);
+  // The sample's deliberate edges, straight from the fixtures the Rust suite pins:
+  // `port = 99999` is out of range, and `colour` is a key the Schema never heard of.
+  await expect(page.locator(".control.invalid")).toHaveCount(1);
+  await expect(page.locator(".node.unknown")).toHaveCount(1);
+  // The latch: no backing file yet.
+  await expect(page.locator("body.sample")).toHaveCount(1);
+});
+
 test("open → add a Repeat item → set values → Unset one → save", async ({ page }) => {
   // The session never fetches: the host resolves the Schema and dispatches the bytes back.
   // `main.ts` builds a detached `<input type=file>` for it, so this is a filechooser, not a
