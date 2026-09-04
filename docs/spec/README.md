@@ -7,6 +7,7 @@ once approved, dated by when it was written, never rewritten. Current behavior l
 ## In progress
 
 - [2026-09-03-confyg-design.md](2026-09-03-confyg-design.md) — `Draft`
+- [2026-09-04-presentation-layers-design.md](2026-09-04-presentation-layers-design.md) — `Draft`
 
 ## Landed
 

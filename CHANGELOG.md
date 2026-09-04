@@ -35,3 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   derivation through to downgrade-only user preference, discovery mirroring §6, no `hidden`, and
   unknown profile keys as Notices; supersedes the glossary's rejection of a separate UI-schema
   file, with the sidecar itself scheduled for v0.2).
+- 2026-09-04 — Added `docs/spec/2026-09-04-presentation-layers-design.md`: the eight-layer table
+  and resolution chain, the nine-member Presentation vocabulary, Widget resolution with the
+  Option filter thresholds, `HostProfile` and a Degradation ladder per Widget, Partition's closed
+  four values with `sections` falling back to `scroll` below three sections, Traversal's
+  no-validity-gate rule with unfilled/violation counts, Form search as a `confyg-form` pure
+  function, Lexicon's split between chassis and Schema-content strings, the added Appearance
+  tokens, the Write-neutrality property test, and the presentation tiers. Extended the glossary
+  with 15 terms and rewrote the Annotation entry, which now names `x-confyg` as the sole
+  annotation and the Presentation profile as its second carrier.

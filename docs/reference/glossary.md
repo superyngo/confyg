@@ -279,8 +279,120 @@ _Avoid_: JSONC mode, comment support, format flag.
 ## Annotations
 
 **Annotation**:
-An optional `x-`-prefixed Schema keyword confyg understands (for example a unit label, a
-**Widget** override, or a field order). Always optional: a Schema carrying none must still
-render a complete, usable form, so any Schema from SchemaStore works unmodified.
-_Avoid_: Extension, vendor keyword, UI schema (that names the separate-file approach confyg
-rejected), hint (a Schema hint is a different thing).
+An optional `x-`-prefixed Schema keyword confyg understands. There is exactly one:
+`x-confyg`, whose value is a **Presentation vocabulary** entry, plus `x-confyg.profile` as a
+**Profile hint** at the Schema root. Always optional: a Schema carrying none must still render a
+complete, usable form, so any Schema from SchemaStore works unmodified. The **Presentation
+profile** is the second carrier of the same vocabulary, not a competing mechanism (ADR 0005).
+_Avoid_: Extension, vendor keyword, hint (a **Schema hint** is a different thing), meta schema
+(in JSON Schema that already means the schema describing schemas).
+
+## Presentation layers
+
+**Value contract**:
+The layer of JSON Schema keywords that decide what a value may be — type, bounds, `enum`,
+`pattern`, `required`, `default`, and the conditionals. One of the two layers permitted to change
+what is written to the **Document**.
+_Avoid_: Validation layer, data layer, model.
+
+**Affordance**:
+The layer deciding which **Widget** a **Field** resolves to. Derived from the **Value contract**,
+overridable per node. A property of a subschema, never of an instance: two items of one **Repeat
+group** always render alike.
+_Avoid_: Widget layer (a Widget is the unit, Affordance is the layer), presentation, control.
+
+**Flow**:
+The layer deciding how the **Form IR** is split across screens and how the user moves between
+them — exactly **Partition** and **Traversal**. Never decides which nodes *exist*; that is the
+**Value contract**'s conditionals.
+_Avoid_: Navigation, routing, layout, wizard.
+
+**Partition**:
+How the **Form IR** is cut into screens: `scroll`, `sections`, `tabs`, or `wizard`. A closed set.
+_Avoid_: Layout, view mode, pagination.
+
+**Traversal**:
+How the user moves between **Partition** units. Free by default. May skip a step whose nodes do
+not exist; may never withhold forward movement because a value is missing or violates the
+**Schema** — that would be the **Soft constraint** the design forbids, in its most obtrusive form.
+_Avoid_: Navigation, stepper (that is a numeric **Widget**), gating.
+
+**Lexicon**:
+The layer holding every string a form displays. Two separated kinds: chassis strings, keyed flat
+under `form.*` and versioned with confyg, and Schema-content strings (`title`, `description`),
+keyed by Schema pointer and versioned with the Schema.
+_Avoid_: i18n (that is the mechanism, not the layer), copy, labels, strings.
+
+**Appearance**:
+The layer holding theme, density, and decorative media, expressed only as **Appearance tokens**.
+The clearest case of a layer that cannot live in a **Schema**: a background image has no
+relationship to any subschema, so it is carried by a **Presentation profile** and by user
+preference alone.
+_Avoid_: Theme (a theme is one set of token values), styling, skin.
+
+**Appearance token**:
+One semantic role in confyg's OKLCH token set — `--ghost`, `--violation`, `--locked`, and the
+rest. A role, never a colour: each host maps a token to its own medium, and a token a host cannot
+express degrades to nothing. confyg extends confy's chrome roles and does not inherit its
+data-type colours.
+_Avoid_: Colour, variable, palette, theme (a theme is a set of token values).
+
+**Conduct**:
+Keyboard, focus, selection, and scrolling behaviour. A **closed** layer: governed by
+`wens-dev-principles ui`, with no **Annotation**, profile, or preference entry point, because it
+is a property of the host platform rather than of the configuration being edited.
+_Avoid_: Interaction, UX, bindings.
+
+**Write-neutrality**:
+The invariant that no layer above the **Value contract** and **Emission style** may change the
+bytes written to the **Document**. Presentation decides what the user sees and how they express an
+intent; it never decides what that intent writes. Verified as a property, not reviewed as a
+guideline: identical inputs under any presentation must emit identical bytes.
+_Avoid_: Separation of concerns, read-only, purity.
+
+**Presentation vocabulary**:
+The closed set of nine optional members — `affordance`, `order`, `unit`, `collapsed`, `demoted`,
+`label`, `help`, `labelFrom`, `optionLabels` — that expresses a per-node presentation decision.
+One vocabulary with two carriers: an `x-confyg` **Annotation** and a **Presentation profile**
+entry are the same value. Contains no `hidden`, because a hidden `required` **Field** with no
+`default` yields a **Document** that cannot be made valid from the UI.
+_Avoid_: UI schema, widget spec, hints.
+
+**Presentation profile**:
+The optional sidecar carrying **Presentation vocabulary** entries plus the parts that cannot scope
+to a single subschema: `flow`, `lexicon`, `appearance`. Four sections; `nodes` is keyed by Schema
+pointer. Outranks an **Annotation**, because the Schema is upstream and the profile belongs to
+whoever deploys confyg. May never add or tighten a constraint (**Write-neutrality**). Unknown keys
+are **Notices**. v0.2.
+_Avoid_: Meta schema (already taken by JSON Schema), UI schema, config (a config is the data),
+theme file.
+
+**Profile hint**:
+`x-confyg.profile` at a **Schema**'s root, pointing at a **Presentation profile**. The presentation
+counterpart of a **Schema hint**, and resolved by a deliberately parallel order: explicit choice →
+Profile hint → sibling-file convention, **Document** name before **Schema** name → nothing.
+_Avoid_: Profile ref, theme link.
+
+**Host capability**:
+What a host can actually render, declared once at session start as a `HostProfile` — pure data, a
+flat set of facts plus a density, never trait methods. Pure data because it must serialize into a
+compiler snapshot, so a host's degraded form is an assertion rather than a manual check.
+_Avoid_: Feature flags, environment, platform.
+
+**Degradation ladder**:
+A **Widget**'s ordered fallback chain, terminating in a control every host has. Walked by
+`confyg-form` at compile time, never by a host, so the Web and TUI hosts cannot diverge. The
+**Form IR** keeps both the clamped **Widget** and the intended one, so a substitution can be
+explained. A Widget with no chain to a universal control is not admissible.
+_Avoid_: Fallback, polyfill, graceful degradation.
+
+**Form search**:
+Fuzzy matching over **Form node** titles, descriptions, and **Paths**, to locate a **Field** in a
+large form. A pure function in `confyg-form`, because a hit must be able to move the **Partition**
+to the section containing it. Distinct from an **Option filter**.
+_Avoid_: Filter (that is confy's document-filtering term), find, query.
+
+**Option filter**:
+The type-to-filter affordance *inside* one **Widget**, for an `enum` past the count at which a
+plain menu stops being usable. Shares no component and no term with **Form search**.
+_Avoid_: Search, autocomplete, combobox (that is the control implementing it).
