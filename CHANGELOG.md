@@ -336,6 +336,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `properties` order** is not, so it yields. `upstream.md` *Insertion legality* now states the
   real rule. Found by hand, not by the suite; see
   [`docs/debug/2026-09-04-phase-a-hands-on-findings.md`](docs/debug/2026-09-04-phase-a-hands-on-findings.md).
+- 2026-09-05 — Phone testing after applying the redesign showed a totally unstyled, overlapping
+  page (screenshot-reported by the user as "完全爛掉"). Three bugs, all in the redesign's own
+  `web/src/style.css`, none introduced by the port: (1) the file dropped the
+  `@import "./tokens.css";` it used to open with, so every design token (`--bg`, `--fg`,
+  `--font`, `--accent`, …) was undefined and the browser fell back to its default UA stylesheet
+  — Times New Roman, transparent backgrounds, beveled buttons; (2) `#form` was `display: flex`
+  with no `flex-direction`, so its two permanent children — the violation summary and the page
+  body — sat side by side instead of stacked, running the form off the right edge; (3)
+  `body[data-nav="push"] .node.field`'s grid gave the **label** column `minmax(0, 1fr)` (free to
+  shrink to nothing) and the **control** column `auto` (sized to its content), the reverse of
+  the desktop rule, so a two-word label like "Bind address" or a slider-width control squeezed
+  the label into a wrapped, cramped sliver. Fixed by restoring the import, adding
+  `flex-direction: column`, and giving the label column a `minmax(90px, 40%)` floor with the
+  control column `minmax(0, 1fr)`. Verified against an emulated iPhone 13 viewport before and
+  after each fix.
 - 2026-09-04 — `FormNode`'s variant fields now serialize as camelCase. `rename_all` renames
   *variants* only, so `raw_preview`, `item_template`, `label_from` and `schema_ptr` crossed the
   boundary in snake_case against the IR's documented contract; `rename_all_fields` fixes it.

@@ -9,6 +9,7 @@
    Adaptation is by width and by pointer, not by device: below 1000px the section list
    narrows, below a 520px detail pane the entry column becomes a drawer, and a coarse
    pointer turns the whole thing into the pushed-page shell (`body[data-nav="push"]`). */
+@import "./tokens.css";
 
 *,
 *::before,
@@ -226,6 +227,7 @@ textarea {
   flex: 1;
   min-height: 0;
   display: flex;
+  flex-direction: column;
 }
 .form-shell {
   flex: 1;
@@ -845,7 +847,7 @@ body[data-nav="push"][data-page="list"] .entry-column {
 }
 /* Label above control, and the row itself is the long-press target for the row menu. */
 body[data-nav="push"] .node.field {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(90px, 40%) minmax(0, 1fr);
   padding: 6px 14px;
   border-bottom: 1px solid var(--border);
 }
