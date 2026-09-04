@@ -6,7 +6,9 @@ frozen once resolved, dated by when it was written, never rewritten. Current beh
 
 ## In progress
 
-_None._
+| Date | Document | Status |
+|---|---|---|
+| 2026-09-04 | [Phase A hands-on findings](2026-09-04-phase-a-hands-on-findings.md) | Open |
 
 ## Landed
 

@@ -1,5 +1,5 @@
 # confyg v0.1 Implementation Plan
-Status: Draft
+Status: Shipped
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `subagent-driven-development` (recommended) or
 > `executing-plans` to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for

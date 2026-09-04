@@ -188,3 +188,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `SessionCommand` became externally tagged so the FFI JSON has no colliding `kind`.
   `.cargo/config.toml` selects `getrandom`'s JS backend for `wasm32-unknown-unknown`, and CI
   gained a `wasm` job running `wasm-pack build`.
+- 2026-09-04 — Phase A of the v0.1 plan is complete and merged: `confyg-form`, `confyg-session`
+  and `confyg-ffi`, 22 test suites, three CI gates. The plan is marked Shipped. Driving the
+  session by hand then found two form-level defects the suite does not catch, recorded in
+  [`docs/debug/2026-09-04-phase-a-hands-on-findings.md`](docs/debug/2026-09-04-phase-a-hands-on-findings.md):
+  a `ToggleGroup` offered where TOML's table-capture rule forbids the insert, and a `Delete`
+  that leaves its entry's leading comment block behind.
