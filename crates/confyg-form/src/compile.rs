@@ -57,14 +57,21 @@ pub fn project(schema: &Value, doc: Option<&AnyDocument>, host: &HostProfile) ->
         notices: Vec::new(),
         visited: Vec::new(),
     };
-    let root = ctx.build(schema, "#".to_owned(), Vec::new(), None, false);
+    let mut root = ctx.build(schema, "#".to_owned(), Vec::new(), None, false);
+    let mut notices = ctx.notices;
+
+    // Step 7: sweep unknowns. Only a Document can have keys the Schema does not describe.
+    if let Some(view) = view.as_ref() {
+        notices.extend(crate::unknown::sweep(&mut root, view));
+    }
+
     Compiled {
         root,
         state: SchemaState {
             projected: true,
             validatable: validatable(schema),
         },
-        notices: ctx.notices,
+        notices,
     }
 }
 

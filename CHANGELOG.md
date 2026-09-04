@@ -111,3 +111,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   letting `PointerMap::resolve`'s upward walk put container and `required` failures on the
   container, and an unresolvable pointer on the root. A snapshot asserts that the same logical
   document in TOML, JSON and YAML projects one identical outline (verification item 1).
+- 2026-09-04 — Added `crates/confyg-form/src/unknown.rs`: design §4 step 7 sweeps every Document
+  key the Schema does not describe into a trailing `FormNode::Unknown` in its own parent, each
+  carrying a Notice that names the key — a Notice, never a fabricated Violation, since under
+  open `additionalProperties` an extra key breaks no rule (design §7 B18); under
+  `additionalProperties: false` the validator's own container Violation stands and the Notice is
+  what names the key. `summary` walks the tree depth-first and reports
+  `Validation::Unavailable { keyword, pointer }` when the Schema could not compile, so a broken
+  `pattern` never reads as "no problems" (C6, D8).
