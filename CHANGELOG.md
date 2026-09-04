@@ -157,3 +157,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   test is C3's reverse direction: `detect_hint` resolves the generated file's own Schema in all
   three formats. This is the only place confyg authors comments; an existing Document's comments
   are never touched.
+- 2026-09-04 — Added `crates/confyg-session/src/session.rs`: one `dispatch(Request)` in, one
+  `SetterSnapshot` out, and that snapshot is the only type crossing the FFI boundary. The
+  session performs no I/O — an unresolved Schema hint leaves a `SchemaFetchRequest` in the
+  snapshot for the host, and `Save` only says what the bytes are. With no Schema at all the
+  whole Document projects as one `Unknown` node rather than a guessed form (design §6 step 4).
+  Undo is a full-text snapshot ring with one entry per *committed* intent, so a refused intent
+  costs no step, and each entry carries its Doc format so a format conversion undoes like any
+  other edit.
