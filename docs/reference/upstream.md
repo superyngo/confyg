@@ -99,6 +99,10 @@ mutation API: getting it wrong misplaces text rather than raising an error.
   additionally subtracts a `root_prefix_offset`.
 - For `Mutation::Move`, `target.index` is a **pre-deletion** ordinal; the engine then subtracts
   the number of same-container sources sitting below it.
+- A comment **block**, not a comment line, is one child: consecutive `#` (or `//`) lines merge
+  into a single `Comment` node in all three backends, and a blank line splits them
+  (`model/cst_project.rs`). Three comment lines above the first entry therefore shift a
+  `Target.index` by one, not by three.
 
 confyg converts between the two before every `Insert`. No upstream helper is public today; see
 the upstream bill.

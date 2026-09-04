@@ -119,3 +119,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   what names the key. `summary` walks the tree depth-first and reports
   `Validation::Unavailable { keyword, pointer }` when the Schema could not compile, so a broken
   `pattern` never reads as "no problems" (C6, D8).
+- 2026-09-04 — Added the `confyg-session` crate with `src/ordinal.rs`: `child_ordinal` converts a
+  projection index (entries only, the space the Form IR counts in) into the child ordinal a
+  `Target` wants, which counts comment nodes too (D7), and subtracts YAML's root comment prefix
+  because YAML root indices are container indices. `schema_slot` places a key the Document does
+  not hold yet at its Schema `properties` position among present siblings rather than appending
+  it blindly, then clamps it before TOML's first capturing `[table]`/`[[aot]]` header, since a
+  plain key after one is silently re-keyed into that section (D1). Both bodies carry a
+  `// PORTED:` note naming the `pub(crate)` upstream logic they duplicate.
