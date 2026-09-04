@@ -162,7 +162,7 @@
         },
         "meta": {
           "title": "cacheSize",
-          "description": null,
+          "description": "How much memory to keep hot before evicting",
           "violations": [],
           "locked": null,
           "deprecated": false,
@@ -334,7 +334,7 @@
               }
             ],
             "meta": {
-              "title": "",
+              "title": "Server",
               "description": null,
               "violations": [],
               "locked": null,
@@ -424,15 +424,311 @@
             "toggle": {
               "enabled": true
             }
+          },
+          {
+            "kind": "group",
+            "path": [
+              {
+                "Key": "servers"
+              },
+              {
+                "Index": 1
+              }
+            ],
+            "meta": {
+              "title": "Server",
+              "description": null,
+              "violations": [],
+              "locked": null,
+              "deprecated": false
+            },
+            "children": [
+              {
+                "kind": "field",
+                "path": [
+                  {
+                    "Key": "servers"
+                  },
+                  {
+                    "Index": 1
+                  },
+                  {
+                    "Key": "host"
+                  }
+                ],
+                "widget": "text",
+                "intended": "text",
+                "presence": {
+                  "kind": "set",
+                  "literal": "\"b.example\""
+                },
+                "meta": {
+                  "title": "host",
+                  "description": null,
+                  "violations": [],
+                  "locked": null,
+                  "deprecated": false,
+                  "default": null,
+                  "examples": [],
+                  "required": true,
+                  "readOnly": false,
+                  "writeOnly": false,
+                  "unit": null,
+                  "constraints": [],
+                  "raw": false,
+                  "options": []
+                }
+              },
+              {
+                "kind": "field",
+                "path": [
+                  {
+                    "Key": "servers"
+                  },
+                  {
+                    "Index": 1
+                  },
+                  {
+                    "Key": "weight"
+                  }
+                ],
+                "widget": "stepper",
+                "intended": "stepper",
+                "presence": {
+                  "kind": "absent",
+                  "default": null,
+                  "remarked": null
+                },
+                "meta": {
+                  "title": "weight",
+                  "description": null,
+                  "violations": [],
+                  "locked": null,
+                  "deprecated": false,
+                  "default": null,
+                  "examples": [],
+                  "required": false,
+                  "readOnly": false,
+                  "writeOnly": false,
+                  "unit": null,
+                  "constraints": [
+                    {
+                      "kind": "minimum",
+                      "value": 1.0,
+                      "exclusive": false
+                    }
+                  ],
+                  "raw": false,
+                  "options": []
+                }
+              }
+            ],
+            "occupancy": "populated",
+            "toggle": {
+              "enabled": true
+            }
+          },
+          {
+            "kind": "group",
+            "path": [
+              {
+                "Key": "servers"
+              },
+              {
+                "Index": 2
+              }
+            ],
+            "meta": {
+              "title": "Server",
+              "description": null,
+              "violations": [],
+              "locked": null,
+              "deprecated": false
+            },
+            "children": [
+              {
+                "kind": "field",
+                "path": [
+                  {
+                    "Key": "servers"
+                  },
+                  {
+                    "Index": 2
+                  },
+                  {
+                    "Key": "host"
+                  }
+                ],
+                "widget": "text",
+                "intended": "text",
+                "presence": {
+                  "kind": "set",
+                  "literal": "\"c.example\""
+                },
+                "meta": {
+                  "title": "host",
+                  "description": null,
+                  "violations": [],
+                  "locked": null,
+                  "deprecated": false,
+                  "default": null,
+                  "examples": [],
+                  "required": true,
+                  "readOnly": false,
+                  "writeOnly": false,
+                  "unit": null,
+                  "constraints": [],
+                  "raw": false,
+                  "options": []
+                }
+              },
+              {
+                "kind": "field",
+                "path": [
+                  {
+                    "Key": "servers"
+                  },
+                  {
+                    "Index": 2
+                  },
+                  {
+                    "Key": "weight"
+                  }
+                ],
+                "widget": "stepper",
+                "intended": "stepper",
+                "presence": {
+                  "kind": "absent",
+                  "default": null,
+                  "remarked": null
+                },
+                "meta": {
+                  "title": "weight",
+                  "description": null,
+                  "violations": [],
+                  "locked": null,
+                  "deprecated": false,
+                  "default": null,
+                  "examples": [],
+                  "required": false,
+                  "readOnly": false,
+                  "writeOnly": false,
+                  "unit": null,
+                  "constraints": [
+                    {
+                      "kind": "minimum",
+                      "value": 1.0,
+                      "exclusive": false
+                    }
+                  ],
+                  "raw": false,
+                  "options": []
+                }
+              }
+            ],
+            "occupancy": "populated",
+            "toggle": {
+              "enabled": true
+            }
           }
         ],
         "occupancy": "populated",
         "bounds": {
-          "min": null,
+          "min": 1,
           "max": 3
         },
         "itemTemplate": "#/properties/servers/items",
         "labelFrom": "host"
+      },
+      {
+        "kind": "repeat",
+        "path": [
+          {
+            "Key": "tags"
+          }
+        ],
+        "meta": {
+          "title": "Tags",
+          "description": null,
+          "violations": [],
+          "locked": null,
+          "deprecated": false
+        },
+        "items": [
+          {
+            "kind": "field",
+            "path": [
+              {
+                "Key": "tags"
+              },
+              {
+                "Index": 0
+              }
+            ],
+            "widget": "text",
+            "intended": "text",
+            "presence": {
+              "kind": "set",
+              "literal": "\"edge\""
+            },
+            "meta": {
+              "title": "",
+              "description": null,
+              "violations": [],
+              "locked": null,
+              "deprecated": false,
+              "default": null,
+              "examples": [],
+              "required": false,
+              "readOnly": false,
+              "writeOnly": false,
+              "unit": null,
+              "constraints": [],
+              "raw": false,
+              "options": []
+            }
+          },
+          {
+            "kind": "field",
+            "path": [
+              {
+                "Key": "tags"
+              },
+              {
+                "Index": 1
+              }
+            ],
+            "widget": "text",
+            "intended": "text",
+            "presence": {
+              "kind": "set",
+              "literal": "\"beta\""
+            },
+            "meta": {
+              "title": "",
+              "description": null,
+              "violations": [],
+              "locked": null,
+              "deprecated": false,
+              "default": null,
+              "examples": [],
+              "required": false,
+              "readOnly": false,
+              "writeOnly": false,
+              "unit": null,
+              "constraints": [],
+              "raw": false,
+              "options": []
+            }
+          }
+        ],
+        "occupancy": "populated",
+        "bounds": {
+          "min": 2,
+          "max": 4
+        },
+        "itemTemplate": "#/properties/tags/items",
+        "labelFrom": null
       },
       {
         "kind": "unknown",
@@ -466,7 +762,7 @@
       "kind": "available"
     }
   },
-  "text": "# the address we bind to — keep this comment attached to host\nhost = \"0.0.0.0\"\n\n# deliberately out of range, so you can see an Invalid field\nport = 99999\n\n# a key the schema has never heard of\ncolour = \"puce\"\n\n[[servers]]\nhost = \"a.example\"\nweight = 2\n",
+  "text": "# the address we bind to — keep this comment attached to host\nhost = \"0.0.0.0\"\n\n# deliberately out of range, so you can see an Invalid field\nport = 99999\n\n# a key the schema has never heard of\ncolour = \"puce\"\n\n# a scalar array, two of a permitted four — Remove is gated at minItems\ntags = [\"edge\", \"beta\"]\n\n[[servers]]\nhost = \"a.example\"\nweight = 2\n\n[[servers]]\nhost = \"b.example\"\n\n[[servers]]\nhost = \"c.example\"\n",
   "notices": [
     {
       "code": "form.unknown.key",

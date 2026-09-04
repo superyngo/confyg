@@ -11,7 +11,8 @@
 //! an optional section, a bounded array and comments to preserve. Any Schema works.
 //!
 //! Commands: `set <path> <json>` · `unset <path>` · `add <path>` · `rm <path> <i>`
-//!           `on|off <path>` · `undo` · `redo` · `as toml|json|yaml` · `text` · `json` · `q`
+//!           `on|off <path>` · `find <query>` · `undo` · `redo` · `as toml|json|yaml`
+//!           `text` · `json` · `q`
 //! Paths are dotted, with `[i]` for array indices: `servers[0].host`.
 
 use confy_core::model::document::DocFormat;
@@ -78,6 +79,19 @@ fn main() {
             // core's output rather than a hand-written guess.
             "json" => {
                 println!("{}", serde_json::to_string_pretty(&snap).unwrap());
+                continue;
+            }
+            // Form search over the real compiler, so the ranking a host shows is the one a
+            // terminal shows (presentation §5.3).
+            "find" => {
+                for hit in s.search(rest) {
+                    println!(
+                        "{:>5}  {}  {}",
+                        hit.score,
+                        confyg_form::search::path_text(&hit.path),
+                        hit.title
+                    );
+                }
                 continue;
             }
             "set" => {

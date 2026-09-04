@@ -147,6 +147,7 @@ name = "confyg-form"
 version = "0.1.0"
 dependencies = [
  "confy-core",
+ "fuzzy-matcher",
  "insta",
  "jsonschema",
  "serde",

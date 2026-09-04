@@ -4,12 +4,14 @@
 import { Boundary } from "./boundary.js";
 import { formatFromName, initTheme, saveText, toggleTheme, type DocFormat } from "./host-io.js";
 import { applyStaticI18n } from "./i18n.js";
-import { render } from "./render.js";
-import type { Ctx } from "./widgets/index.js";
+import { render, reveal, type HostCtx } from "./render.js";
+import { resultList } from "./search.js";
 import "./style.css";
 
 const root = document.getElementById("form") as HTMLElement;
 const openInput = document.getElementById("open") as HTMLInputElement;
+const searchInput = document.getElementById("search") as HTMLInputElement;
+const results = document.getElementById("results") as HTMLElement;
 
 let boundary: Boundary | null = null;
 let fmt: DocFormat = "Toml";
@@ -36,7 +38,7 @@ function show(snapshot: SnapshotOrError): void {
 // The controls' one way to write: a literal in, an intent out, and the snapshot that comes
 // back is what the next render draws. `rawText` hands over bytes rather than JSON, so an
 // unparseable literal is passed through as the string it is.
-const session: Ctx = {
+const session: HostCtx = {
   set(path, literal) {
     if (!boundary) return;
     let value: unknown;
@@ -51,6 +53,20 @@ const session: Ctx = {
   unset(path) {
     if (!boundary) return;
     show(boundary.dispatch({ intent: { kind: "unset", path } }));
+  },
+  // The collection and Group intents. `index` is an *entry* index: the core converts to the
+  // Document's child index itself (`confyg_session::ordinal`), so a comment is never counted.
+  addItem(path) {
+    if (!boundary) return;
+    show(boundary.dispatch({ intent: { kind: "addRepeatItem", path } }));
+  },
+  removeItem(path, index) {
+    if (!boundary) return;
+    show(boundary.dispatch({ intent: { kind: "removeRepeatItem", path, index } }));
+  },
+  toggleGroup(path, enable) {
+    if (!boundary) return;
+    show(boundary.dispatch({ intent: { kind: "toggleGroup", path, enable } }));
   },
 };
 
@@ -91,6 +107,23 @@ document.getElementById("schema")?.addEventListener("click", () => {
     );
   });
   picker.click();
+});
+
+// Form search: the query goes straight to the compiler and the hits come back ranked
+// (presentation §5.3). An empty box clears the list rather than reporting "no matches" —
+// nothing was asked, so nothing is answered.
+searchInput.addEventListener("input", () => {
+  if (!boundary || searchInput.value.trim() === "") {
+    results.replaceChildren();
+    return;
+  }
+  results.replaceChildren(
+    resultList(boundary.search(searchInput.value), (path) => {
+      reveal(path);
+      searchInput.value = "";
+      results.replaceChildren();
+    }),
+  );
 });
 
 boundary = await Boundary.load();

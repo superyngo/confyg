@@ -17,6 +17,7 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 4096,
+      "description": "How much memory to keep hot before evicting",
       "x-confyg": { "affordance": "slider", "unit": "MiB" }
     },
     "token": { "type": "string", "writeOnly": true },
@@ -30,15 +31,24 @@
     },
     "servers": {
       "type": "array",
+      "minItems": 1,
       "maxItems": 3,
       "items": {
         "type": "object",
+        "title": "Server",
         "required": ["host"],
         "properties": {
           "host": { "type": "string" },
           "weight": { "type": "integer", "minimum": 1 }
         }
       }
+    },
+    "tags": {
+      "type": "array",
+      "title": "Tags",
+      "minItems": 2,
+      "maxItems": 4,
+      "items": { "type": "string" }
     }
   }
 }

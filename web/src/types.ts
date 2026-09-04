@@ -143,6 +143,14 @@ export interface Notice {
   message: string;
 }
 
+// `confyg_form::search::Hit` — one Form search result. The `score` is the compiler's own
+// ranking: a host renders the list in the order it arrives (presentation §5.3).
+export interface Hit {
+  path: Path;
+  title: string;
+  score: number;
+}
+
 export interface SetterSnapshot {
   ir: FormNode;
   summary: Summary;

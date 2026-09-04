@@ -10,5 +10,6 @@ pub mod facts;
 pub mod ir;
 pub mod notice;
 pub mod overlay;
+pub mod search;
 pub mod unknown;
 pub mod vocab;

@@ -3,34 +3,85 @@
 // serve a tree editor whose row model is a value/type pair, and ADR 0002 keeps the two
 // apart.
 //
-// Field controls come from the widget registry (`widgets/index.ts`); this file owns
-// everything around them: sections, headings, group and repeat containers, and the
-// Presence-independent chrome (required marker, deprecated badge, description, violations).
-import { partition, type Partition, type Section } from "./partition.js";
+// Field controls come from the widget registry (`widgets/index.ts`) and Repeat cards from
+// `repeat.ts`; this file owns everything around them: sections, headings, group containers,
+// the violation summary, and the Presence-independent chrome.
+import { badge, chrome, el, groupHeading, label, note, violationsIn } from "./dom.js";
 import { t } from "./i18n.js";
+import { partition, type Partition, type Section } from "./partition.js";
+import { renderRepeat as renderRepeatCards } from "./repeat.js";
+import { sectionFor } from "./search.js";
+import { renderSummary } from "./summary.js";
 import {
   pathText,
   type FieldNode,
   type FormNode,
   type GroupNode,
-  type NodeMeta,
+  type Path,
   type RepeatNode,
   type SetterSnapshot,
-  type Violation,
 } from "./types.js";
 import { mount, type Ctx } from "./widgets/index.js";
 
+/**
+ * What the shell asks the session for. A widget only ever sets or unsets a value (`Ctx`);
+ * the container intents live here because only a container can offer them.
+ */
+export interface HostCtx extends Ctx {
+  addItem(path: Path): void;
+  removeItem(path: Path, index: number): void;
+  toggleGroup(path: Path, enable: boolean): void;
+}
+
 // The host renders one document at a time, so the session the controls write to is ambient
 // rather than threaded through every layout function.
-let active: Ctx = { set: () => {}, unset: () => {} };
+let active: HostCtx = {
+  set: () => {},
+  unset: () => {},
+  addItem: () => {},
+  removeItem: () => {},
+  toggleGroup: () => {},
+};
 
-export function render(snapshot: SetterSnapshot, root: HTMLElement, ctx?: Ctx): void {
+// The rendered document, kept so a summary item or a search hit can jump to a node that may
+// be in a section the user is not looking at.
+let current: { root: HTMLElement; plan: Partition; show: ((key: string) => void) | null } | null =
+  null;
+
+export function render(snapshot: SetterSnapshot, root: HTMLElement, ctx?: HostCtx): void {
   if (ctx) active = ctx;
   const plan = partition(snapshot.ir);
-  root.replaceChildren(
-    plan.kind === "sections" ? sectionsLayout(plan) : scrollLayout(plan),
-  );
+  current = { root, plan, show: null };
+  const body = plan.kind === "sections" ? sectionsLayout(plan) : scrollLayout(plan);
+  // The summary sits above the form in both Partitions: a violation the user cannot see is a
+  // violation they cannot fix, whichever screen holds the field.
+  root.replaceChildren(renderSummary(snapshot.summary, reveal), body);
   root.dataset.partition = plan.kind;
+}
+
+/**
+ * Move to the node at `path` and mark it: the section containing it first, then the node.
+ *
+ * Free navigation, so this only ever *shows* — nothing is withheld and nothing is disabled
+ * on the way (ADR 0004 decision 5).
+ */
+export function reveal(path: string): void {
+  if (!current) return;
+  const key = sectionFor(path, current.plan);
+  if (key !== null && current.show) current.show(key);
+  // Compared rather than selected: a Schema key may hold characters an attribute selector
+  // would have to escape.
+  const target = [...current.root.querySelectorAll<HTMLElement>("[data-path]")].find(
+    (node) => node.dataset.path === path,
+  );
+  if (!target) return;
+  for (const prior of current.root.querySelectorAll(".revealed")) {
+    prior.classList.remove("revealed");
+  }
+  // A class, not `focus()`: a section is not a focusable thing, and pulling focus somewhere
+  // the user did not ask for fights a screen reader.
+  target.classList.add("revealed");
+  target.scrollIntoView?.({ block: "nearest" });
 }
 
 // `scroll`: one page, and a section is its Group's own heading. A section is rendered
@@ -77,6 +128,13 @@ function sectionsLayout(plan: Partition): HTMLElement {
   }
   shell.append(list, detail);
   if (plan.sections.length > 0) show(plan.sections[0]);
+  // `reveal` needs to reach a section by key; the layout owns which one is showing.
+  if (current) {
+    current.show = (key) => {
+      const section = plan.sections.find((s) => s.key === key);
+      if (section) show(section);
+    };
+  }
   return shell;
 }
 
@@ -91,6 +149,7 @@ function renderNode(node: FormNode, depth: number): HTMLElement {
     case "unknown": {
       // A preserved key the Schema never mentioned. Informational, never a rule failure.
       const row = el("div", "node unknown");
+      row.dataset.path = pathText(node.path);
       row.append(label(pathText(node.path)), note(t("form.unknown.preserved"), "notice"));
       const preview = el("pre", "raw-preview");
       preview.textContent = node.rawPreview;
@@ -99,6 +158,7 @@ function renderNode(node: FormNode, depth: number): HTMLElement {
     }
     case "cyclic": {
       const row = el("div", "node cyclic");
+      row.dataset.path = pathText(node.path);
       row.append(label(pathText(node.path)), note(t("form.cyclic.stopped"), "notice"));
       return row;
     }
@@ -110,12 +170,14 @@ function renderGroup(node: GroupNode, depth: number): HTMLElement {
   box.dataset.path = pathText(node.path);
   box.dataset.occupancy = node.occupancy;
   box.append(groupHeading(node, depth));
-  if (node.toggle) {
-    const toggle = el("button", "group-toggle") as HTMLButtonElement;
-    toggle.type = "button";
-    toggle.dataset.enabled = String(node.toggle.enabled);
-    toggle.textContent = node.toggle.enabled ? t("form.group.off") : t("form.group.on");
-    box.append(toggle);
+  const toggle = node.toggle;
+  if (toggle) {
+    const control = el("button", "group-toggle") as HTMLButtonElement;
+    control.type = "button";
+    control.dataset.enabled = String(toggle.enabled);
+    control.textContent = toggle.enabled ? t("form.group.off") : t("form.group.on");
+    control.addEventListener("click", () => active.toggleGroup(node.path, !toggle.enabled));
+    box.append(control);
   }
   box.append(...chrome(node.meta));
   // An Absent optional Group has no children to walk until it is turned on.
@@ -123,15 +185,13 @@ function renderGroup(node: GroupNode, depth: number): HTMLElement {
   return box;
 }
 
-// The card layout, the count badge, and the bounds gating are Task 19; the shell walks the
-// items so a Repeat is never invisible before then.
+// The cards are `repeat.ts`'s; the walk stays here, so a card's contents are ordinary nodes.
 function renderRepeat(node: RepeatNode, depth: number): HTMLElement {
-  const box = el("section", "node repeat");
-  box.dataset.path = pathText(node.path);
-  box.dataset.occupancy = node.occupancy;
-  box.append(groupHeading(node, depth), ...chrome(node.meta));
-  for (const item of node.items) box.append(renderNode(item, depth + 1));
-  return box;
+  return renderRepeatCards(node, depth, {
+    addItem: (path) => active.addItem(path),
+    removeItem: (path, index) => active.removeItem(path, index),
+    renderChild: renderNode,
+  });
 }
 
 // The control is the registry's; the row is this file's. A Field is always a labelled row
@@ -158,48 +218,4 @@ function renderField(node: FieldNode): HTMLElement {
     row.append(...node.presence.violations.map((v) => note(v.message, "violation")));
   }
   return row;
-}
-
-// Description and violations: the same chrome for every node kind.
-function chrome(meta: NodeMeta): HTMLElement[] {
-  const parts: HTMLElement[] = [];
-  if (meta.description) parts.push(note(meta.description, "description"));
-  parts.push(...meta.violations.map((v) => note(v.message, "violation")));
-  return parts;
-}
-
-function violationsIn(node: FormNode): Violation[] {
-  const own = "meta" in node ? node.meta.violations : [];
-  const kids = node.kind === "group" ? node.children : node.kind === "repeat" ? node.items : [];
-  return kids.reduce<Violation[]>((all, kid) => all.concat(violationsIn(kid)), [...own]);
-}
-
-function groupHeading(node: GroupNode | RepeatNode, depth: number): HTMLElement {
-  const h = el(`h${Math.min(depth + 1, 6)}`, "node-heading");
-  h.textContent = node.meta.title || pathText(node.path);
-  return h;
-}
-
-function el(tag: string, cls: string): HTMLElement {
-  const node = document.createElement(tag);
-  node.className = cls;
-  return node;
-}
-
-function label(text: string): HTMLElement {
-  const node = el("span", "field-label");
-  node.textContent = text;
-  return node;
-}
-
-function note(text: string, cls: string): HTMLElement {
-  const node = el("p", cls);
-  node.textContent = text;
-  return node;
-}
-
-function badge(text: string, cls: string): HTMLElement {
-  const node = el("span", `badge ${cls}`);
-  node.textContent = text;
-  return node;
 }

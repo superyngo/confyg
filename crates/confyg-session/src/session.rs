@@ -17,6 +17,7 @@ use confyg_form::affordance::{Density, HostProfile};
 use confyg_form::compile::project;
 use confyg_form::ir::FormNode;
 use confyg_form::notice::Notice;
+use confyg_form::search::Hit;
 use confyg_form::unknown::{summary, Summary, Validation};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -306,6 +307,23 @@ impl Session {
                 category: confy_core::schema::types::Category::Value,
             })
             .collect()
+    }
+
+    /// **Form search** over the document as it stands, answered by the compiler that owns the
+    /// semantics (presentation §5.3).
+    ///
+    /// The session recompiles rather than publishing its IR. A public accessor would let any
+    /// host read the compiled tree and re-derive form decisions locally, which is the one
+    /// thing `web/` never does — every decision arrives in a `SetterSnapshot`.
+    ///
+    /// With no Schema there is no form to search, so the result is empty rather than a scan
+    /// of the raw document: search matches **Form nodes**, not bytes.
+    pub fn search(&self, query: &str) -> Vec<Hit> {
+        let Some(schema) = self.schema.as_ref() else {
+            return Vec::new();
+        };
+        let compiled = project(schema, self.doc.as_ref(), &self.host);
+        confyg_form::search::search(&compiled.root, query)
     }
 
     fn snapshot(&self) -> SetterSnapshot {

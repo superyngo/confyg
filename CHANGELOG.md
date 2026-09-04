@@ -232,6 +232,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Schema order, each already carrying its label. The core resolved `menu` and `radio` from
   `enum` but never passed the values on, so a host had to re-derive them — and would then honor
   `x-confyg.optionLabels` in one host and not the next.
+- 2026-09-04 — Phase B, Task 19: **Repeat** cards, the violation summary, and **Form search**.
+  `web/src/repeat.ts` renders a card per object entry and a row per scalar one, titled from the
+  core's `labelFrom` through Task 18's own `widgets/common.ts` `editable` — so a card title
+  loses the quotes that belong to the encoding, shows an Invalid literal as authored, and
+  cannot drift from the field inside the card — and falling back to the item's own title with
+  its ordinal; a count badge reads `(3/5)`, or `(3)` where the Schema set no ceiling.
+  `+` and `−` are gated by the same two comparisons `confyg-session/src/lower.rs` refuses on,
+  so the host never offers an intent the core would decline, and a card publishes its *entry*
+  index — the index `RemoveRepeatItem` takes. `web/src/summary.ts` renders design §11's C6
+  summary above the form in both **Partitions** and jumps to a node; an uncompilable Schema
+  reads *validation unavailable*, never *no problems*, because under D8 a document loses its
+  validation and keeps its form.
+  `web/src/dom.ts` holds the chrome builders the three new modules share.
+- 2026-09-04 — **Form search** landed in the compiler rather than in the host, as presentation
+  §5.3 requires: `confyg_form::search::search(&root, query)` fuzzy-matches node titles,
+  descriptions and **Paths** with `SkimMatcherV2`, returning hits ranked best-first with ties
+  broken on Path so a query never reorders its own results. `fuzzy-matcher` is a direct
+  dependency at the version the workspace already resolved, not a route through
+  `confy_core::session`, which ADR 0001 gates off. `Session::search` mirrors `check` — it
+  recompiles rather than publishing its IR, so no host can re-derive form decisions locally —
+  and `confyg-ffi` grew a third export beside `dispatch` and `check`. The host half is only what
+  cannot live in the compiler: `web/src/search.ts` maps a hit to the section holding it and
+  `render.ts` `reveal` moves the **Partition** there. It shares no code and no term with the
+  **Option filter** (§3.1). `--example try` gained `find <query>`, which is how the three
+  matching axes were checked on the real binary.
+- 2026-09-04 — The `try` fixtures grew the edges the renderer had nothing to render: `servers`
+  gained `minItems` and a titled `items` subschema and a third entry, so it sits at its ceiling;
+  a scalar `tags` array sits at its floor; and `cacheSize` gained a description whose wording is
+  absent from its key. `web/src/__fixtures__/demo-snapshot.json` is regenerated from them, so
+  both bounds gates, both item shapes and the non-key search axis are pinned against real core
+  output rather than a hand-built IR.
 
 ### Fixed
 

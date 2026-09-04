@@ -16,6 +16,10 @@ confy-core = { git = "https://github.com/superyngo/confy", rev = "558bee7fd73179
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 jsonschema = { version = "0.30", default-features = false }
+# The matcher upstream already resolves (`confy-core`'s own search), taken as a direct
+# dependency rather than through `confy_core::session`, which ADR 0001 gates off. Same
+# version, so Web and TUI search can never score the same query differently.
+fuzzy-matcher = "0.3"
 insta = { version = "1", features = ["json"] }
 
 [workspace.lints.rust]
