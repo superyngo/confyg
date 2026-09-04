@@ -74,3 +74,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `TemplateRef`, `Locked`, `Constraint`, and `SchemaState` with its `SchemaCompileError`.
   Serialization is externally tagged on `kind` and camelCase throughout, so `web/` and `insta`
   read the same shape.
+- 2026-09-04 — Added `crates/confyg-form/src/facts.rs`: one non-panicking pass over a Schema
+  object producing `SchemaFacts` — the keyword set `schema::hints_edit` skips (`default`,
+  `examples`, `required`, `deprecated`, `readOnly`, `writeOnly`, `prefixItems`,
+  `additionalProperties`) plus types, enum/const, bounds, lengths, `pattern`, `multipleOf` and
+  `uniqueItems`. `AdditionalProperties::{Schema, Open, Closed}` encodes design §7's three-form
+  table; a malformed keyword reads as absent so a broken Schema still projects a complete form.
