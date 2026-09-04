@@ -353,3 +353,16 @@ fn node_at<'a>(root: &'a Node, path: &Path) -> Option<&'a Node> {
     }
     Some(current)
 }
+
+impl SetterIntent {
+    /// The node this intent is about — what the postcondition guard checks.
+    pub fn path(&self) -> &Path {
+        match self {
+            SetterIntent::SetValue { path, .. }
+            | SetterIntent::Unset { path }
+            | SetterIntent::AddRepeatItem { path }
+            | SetterIntent::RemoveRepeatItem { path, .. }
+            | SetterIntent::ToggleGroup { path, .. } => path,
+        }
+    }
+}

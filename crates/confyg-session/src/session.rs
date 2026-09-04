@@ -173,6 +173,7 @@ impl Session {
         let schema = self.schema.clone().unwrap_or(Value::Bool(true));
         let ir = project(&schema, Some(doc), &self.host);
         let before = doc.serialize();
+        let prediction = predicted(intent, &ir.root);
         match lower(intent, &ir.root, doc, &schema) {
             Ok(muts) => {
                 if muts.is_empty() {
@@ -189,11 +190,30 @@ impl Session {
                 // change and gets one step back.
                 self.undo.push((before, doc.format()));
                 self.redo.clear();
+                self.check_postcondition(&prediction, &schema);
             }
             Err(refused) => self
                 .notices
                 .push(Notice::new("session.intent.refused", refused.reason)),
         }
+    }
+
+    /// The D9 guard. Upstream's failure mode is *success plus a structurally different
+    /// document*, so the recompiled IR is compared against what the intent said it would do:
+    /// a Notice carrying both shapes in release builds, a panic in tests.
+    fn check_postcondition(&mut self, prediction: &Prediction, schema: &Value) {
+        let after = project(schema, self.doc.as_ref(), &self.host);
+        let got = observed(&after.root, &prediction.path);
+        if got == prediction.expect {
+            return;
+        }
+        let message = format!(
+            "predicted {:?} at {:?}, recompiled to {:?}",
+            prediction.expect, prediction.path, got
+        );
+        debug_assert!(false, "D9: {message}");
+        self.notices
+            .push(Notice::new("session.postcondition.mismatch", message));
     }
 
     fn step(&mut self, undo: bool) {
@@ -271,4 +291,93 @@ impl Session {
             can_redo: !self.redo.is_empty(),
         }
     }
+}
+
+/// What an intent says the form will look like after it is applied. Deliberately coarse: the
+/// guard exists to catch *structural* surprises (a key written into the wrong container, an item
+/// that never landed), not to re-specify the value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum Shape {
+    Present,
+    Absent,
+    Count(usize),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Prediction {
+    pub path: confy_core::model::node::Path,
+    pub expect: Shape,
+}
+
+/// The postcondition of each v0.1 intent, read off the IR *before* the write.
+pub fn predicted(intent: &SetterIntent, before: &FormNode) -> Prediction {
+    let path = intent.path().clone();
+    let expect = match intent {
+        // Writing the effective default removes the key: the default is written by absence.
+        SetterIntent::SetValue { value, .. } => match field_default(before, &path) {
+            Some(default) if &default == value => Shape::Absent,
+            _ => Shape::Present,
+        },
+        SetterIntent::Unset { .. } => Shape::Absent,
+        SetterIntent::AddRepeatItem { .. } => Shape::Count(repeat_len(before, &path) + 1),
+        SetterIntent::RemoveRepeatItem { .. } => {
+            Shape::Count(repeat_len(before, &path).saturating_sub(1))
+        }
+        SetterIntent::ToggleGroup { enable, .. } => {
+            if *enable {
+                Shape::Present
+            } else {
+                Shape::Absent
+            }
+        }
+    };
+    Prediction { path, expect }
+}
+
+/// The same shape, read off a compiled IR. A path that no longer resolves is `Absent`.
+pub fn observed(ir: &FormNode, path: &confy_core::model::node::Path) -> Shape {
+    match find_node(ir, path) {
+        None => Shape::Absent,
+        Some(FormNode::Field { presence, .. }) => match presence {
+            confyg_form::ir::Presence::Absent { .. } => Shape::Absent,
+            _ => Shape::Present,
+        },
+        Some(FormNode::Group { occupancy, .. }) => {
+            if *occupancy == confyg_form::ir::Occupancy::Absent {
+                Shape::Absent
+            } else {
+                Shape::Present
+            }
+        }
+        Some(FormNode::Repeat { items, .. }) => Shape::Count(items.len()),
+        Some(_) => Shape::Present,
+    }
+}
+
+fn field_default(ir: &FormNode, path: &confy_core::model::node::Path) -> Option<Value> {
+    match find_node(ir, path) {
+        Some(FormNode::Field { meta, .. }) => meta.default.clone(),
+        _ => None,
+    }
+}
+
+fn repeat_len(ir: &FormNode, path: &confy_core::model::node::Path) -> usize {
+    match find_node(ir, path) {
+        Some(FormNode::Repeat { items, .. }) => items.len(),
+        _ => 0,
+    }
+}
+
+fn find_node<'a>(ir: &'a FormNode, path: &confy_core::model::node::Path) -> Option<&'a FormNode> {
+    if confyg_form::compile::path_of(ir) == path {
+        return Some(ir);
+    }
+    let children: &[FormNode] = match ir {
+        FormNode::Group { children, .. } => children,
+        FormNode::Repeat { items, .. } => items,
+        _ => return None,
+    };
+    children.iter().find_map(|c| find_node(c, path))
 }

@@ -165,3 +165,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Undo is a full-text snapshot ring with one entry per *committed* intent, so a refused intent
   costs no step, and each entry carries its Doc format so a format conversion undoes like any
   other edit.
+- 2026-09-04 — Added the D9 postcondition guard to `Session::dispatch`: `predicted` states each
+  intent's resulting `Shape` from the IR before the write, `observed` reads it off the recompiled
+  IR, and a mismatch panics in test builds and becomes a `session.postcondition.mismatch` Notice
+  in release ones. Upstream's `Insert` adapts a wrong fragment and reports success, so a write
+  that lands in the wrong container is otherwise invisible. `tests/postcondition.rs` runs every
+  v0.1 intent and also asserts no generic placeholder key (`__elem__`, `placeholder`) reaches
+  the bytes.
