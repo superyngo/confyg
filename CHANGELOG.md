@@ -147,3 +147,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `maxItems`, Remove on `minItems`, and a template emits only members without a `default`, so
   Minimal write holds for generated text too. `lower` now also takes the Schema, since the IR
   carries a `TemplateRef` pointer rather than inlined text.
+- 2026-09-04 — Added `crates/confyg-session/src/template.rs`: `comment_policy` derives the
+  Comment policy from the file rather than asking (D4) — TOML and YAML always allow comments,
+  a `.json` denies them unless the extension is `.jsonc` or the file arrived already carrying
+  them, which is evidence about its consumer. `generate` writes a Template under
+  `TemplateStrategy::{RequiredOnly, WithDefaults, Everything}`, turns `title`/`description` into
+  leading comments only when the policy allows, and moves the Schema hint into a `"$schema"`
+  member when it cannot comment. Each format emits its own hint convention, and the acceptance
+  test is C3's reverse direction: `detect_hint` resolves the generated file's own Schema in all
+  three formats. This is the only place confyg authors comments; an existing Document's comments
+  are never touched.
