@@ -24,3 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   added Draft 7 normalization at v0.2; widened verification to an intent × node kind × format
   matrix. Corrected six factual claims about confy, including a dependency pin that did not
   resolve; ADR 0001 carries an erratum rather than being rewritten.
+- 2026-09-04 — Presentation architecture decided after grilling the design record: added ADR 0004
+  (eight presentation layers — Value contract, structure, Affordance, Flow, Lexicon, Appearance,
+  Emission style, Conduct — with the last two closed to any override; **Write-neutrality** as a
+  tested invariant; derivation thresholds fixed while their results stay overridable; Flow split
+  into Partition and Traversal and forbidden from gating on validity; host capability declared as
+  pure data and clamped at compile time along a Degradation ladder) and ADR 0005 (one closed
+  Presentation vocabulary with two carriers — an `x-confyg` Annotation object and an optional
+  Presentation profile sidecar keyed by Schema pointer — a fixed resolution chain from built-in
+  derivation through to downgrade-only user preference, discovery mirroring §6, no `hidden`, and
+  unknown profile keys as Notices; supersedes the glossary's rejection of a separate UI-schema
+  file, with the sidecar itself scheduled for v0.2).
