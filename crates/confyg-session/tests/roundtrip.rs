@@ -335,3 +335,71 @@ fn a_header_fragment_is_never_emitted_at_the_collection_path() {
     );
     assert!(h.starts_with("[[servers]]"), "got {h:?}");
 }
+
+matrix!(
+    enabling_a_section_never_captures_the_keys_above_it,
+    |fmt, src, want| {
+        // Found by hand after Phase A: the form offered a toggle whose Insert the engine refused
+        // as `Illegal("a table here would capture the keys above it")`, so the control did
+        // nothing but produce a notice. Legality wins over Schema order, exactly as it already
+        // does for a plain key at the TOML root.
+        let s = json!({"properties":{
+            "host":{"type":"string"},
+            "tls":{"type":"object","properties":{"ca":{"type":"string"}}},
+            "servers":{"type":"array","items":{"type":"object",
+                "properties":{"x":{"type":"integer"}}}}}});
+        let out = apply_all(
+            &s,
+            src,
+            fmt,
+            &[SetterIntent::ToggleGroup {
+                path: key("tls"),
+                enable: true,
+            }],
+        );
+        assert_eq!(
+            out, want,
+            "{fmt:?}: the section lands legally, and the comment stays with the entry it documents"
+        );
+    },
+    Toml: "host = \"a\"\n# documents servers\n[[servers]]\nx = 1\n"
+        => "host = \"a\"\n# documents servers\n[[servers]]\nx = 1\n[tls]\nca = \"\"\n",
+    Json: "{ \"host\": \"a\", \"servers\": [{ \"x\": 1 }] }\n"
+        => "{ \"host\": \"a\", \"tls\": { \"ca\": \"\" }, \"servers\": [{ \"x\": 1 }] }\n",
+    Yaml: "host: a\n# documents servers\nservers:\n  - x: 1\n"
+        => "host: a\ntls:\n  ca: \"\"\n# documents servers\nservers:\n  - x: 1\n",
+);
+
+#[test]
+#[ignore = "upstream bill item 3: TOML's detach_entry_line eats the blank separator"]
+fn a_delete_keeps_the_blank_line_that_separates_a_comment_block() {
+    // Minimal write (ADR 0003) removes the key when its value equals the effective default. The
+    // user's comment must survive — Comment policy — but so must the blank line below it, or the
+    // block silently becomes the *next* entry's documentation. Delete this `#[ignore]` when the
+    // pin moves past the upstream fix; JSON and YAML already behave.
+    let s = json!({"properties":{"host":{"type":"string"},
+                                 "port":{"type":"integer","default":8080}}});
+    for (fmt, src, want) in [
+        (
+            DocFormat::Toml,
+            "# documents port\nport = 1\n\n# documents host\nhost = \"a\"\n",
+            "# documents port\n\n# documents host\nhost = \"a\"\n",
+        ),
+        (
+            DocFormat::Yaml,
+            "# documents port\nport: 1\n\n# documents host\nhost: a\n",
+            "# documents port\n\n# documents host\nhost: a\n",
+        ),
+    ] {
+        let out = apply_all(
+            &s,
+            src,
+            fmt,
+            &[SetterIntent::SetValue {
+                path: key("port"),
+                value: json!(8080),
+            }],
+        );
+        assert_eq!(out, want, "{fmt:?}: the comment block keeps its separation");
+    }
+}

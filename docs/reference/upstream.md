@@ -73,13 +73,24 @@ These are `pub(crate)`. confyg works around each without an upstream change:
 
 ## The upstream bill
 
-Two structural changes confyg cannot work around, both PRs against confy:
+Three structural changes confyg cannot work around, all PRs against confy:
 
 1. **A `session` Cargo feature**, on by default, gating `pub mod session;`. Verified safe: neither
    `model/` nor `schema/` references `session` in executable code (zero matches for
    `crate::session`), so gating compiles cleanly.
 2. **A public insertion-ordinal helper** in `model::` — the projection-index → child-ordinal
    mapping currently trapped in `session::insertion::true_sibling_index`. See *Index spaces*.
+3. **`Delete` must not eat the blank line after the entry.** TOML's `detach_entry_line` detaches
+   the entry's following `NEWLINE` *token*, and taplo lexes a run of newlines as one token, so
+   deleting an entry that is followed by a blank line closes the gap:
+   `port = 1\n\nhost = "x"\n` becomes `host = "x"\n`. When the deleted entry carried a leading
+   comment block, that block then reads as the *next* entry's documentation — the same
+   misattribution *Index spaces* makes confyg guard on the insert side, arriving from the delete
+   side instead. Deleting the comment with the entry is not the fix: **Comment policy** says an
+   existing Document's comments are never touched, and losing the user's prose is worse than
+   losing a blank line. JSON and YAML are unaffected. Until it lands, confyg's minimal-write
+   `Delete` (ADR 0003) can silently re-attribute one comment block; `roundtrip.rs`
+   `a_delete_keeps_the_blank_line_that_separates_a_comment_block` is `#[ignore]`d against it.
 
 Deliberately kept in confyg instead of upstreamed (pure computation, confyg's cadence):
 
@@ -116,6 +127,18 @@ TOML requires a table's scalar members to precede its sub-tables. The engine's b
   header no earlier.
 - Targeting the **document root** does not clamp; an out-of-partition index returns
   `MutateError::Illegal`.
+
+The root rule for a header-like fragment is coarser than "captures nothing": `check_partition`
+accepts it only at an index `>= split`, where `split` is the parent's *first* capturing-header
+child (a dotted-key table is not one), or the child count when there is none. A section can
+therefore never be inserted above an existing section, whatever **Schema `properties` order**
+says, and a document of nothing but plain keys can only take one at the end.
+
+That floor can land exactly between a comment block and the entry it documents, which is the
+misattribution *Index spaces* forbids. Both rules are hard, so confyg resolves the collision by
+stepping past the documented entry and letting Schema order — the one soft rule of the three —
+yield. `ordinal::header_slot` is that computation; `ordinal::schema_slot` is the plain-key
+mirror.
 
 So confyg computes the root-level slot itself. There is no upstream helper that answers "where
 among these siblings does key K belong" — schema-ordered placement is entirely confyg's.

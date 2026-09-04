@@ -6,11 +6,10 @@ frozen once resolved, dated by when it was written, never rewritten. Current beh
 
 ## In progress
 
-| Date | Document | Status |
-|---|---|---|
-| 2026-09-04 | [Phase A hands-on findings](2026-09-04-phase-a-hands-on-findings.md) | Open |
+_None._
 
 ## Landed
 
 | Date | Document | Status |
 |---|---|---|
+| 2026-09-04 | [Phase A hands-on findings](2026-09-04-phase-a-hands-on-findings.md) | Resolved (finding 2 deferred to upstream bill item 3) |

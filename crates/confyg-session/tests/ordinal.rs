@@ -3,7 +3,7 @@
 use confy_core::model::any_doc::AnyDocument;
 use confy_core::model::document::DocFormat;
 use confy_core::model::node::Path;
-use confyg_session::ordinal::{child_ordinal, schema_slot};
+use confyg_session::ordinal::{child_ordinal, header_slot, schema_slot};
 
 fn parse(src: &str, fmt: DocFormat) -> AnyDocument {
     AnyDocument::from_str_as(src, fmt).expect("parse")
@@ -122,6 +122,46 @@ fn a_nested_parent_counts_its_own_comments_in_every_format() {
             child_ordinal(&doc, &tls, 0),
             1,
             "{fmt:?}: a non-root parent never subtracts a prefix"
+        );
+    }
+}
+
+#[test]
+fn a_section_never_lands_before_a_plain_key() {
+    // The mirror of `schema_slot`'s clamp. `[tls]` at its Schema slot — before `colour` — would
+    // capture every plain key below it into the table, which is why the engine refuses it. A
+    // header is legal only from the first existing header onward, and landing exactly there
+    // would split `# documents servers` from `[[servers]]`, so it steps past that section:
+    // **Schema order** is the soft rule of the three, and the one that yields.
+    let doc =
+        parse_toml("host = \"a\"\ncolour = \"puce\"\n# documents servers\n[[servers]]\nx = 1\n");
+    let o = order(&["host", "tls", "servers"]);
+    assert_eq!(
+        schema_slot(&doc, &root(), "tls", &o),
+        1,
+        "Schema order alone puts tls right after host"
+    );
+    assert_eq!(
+        header_slot(&doc, &root(), "tls", &o),
+        4,
+        "a section may not precede `[[servers]]`, nor split its comment from it, so it appends"
+    );
+}
+
+#[test]
+fn only_toml_clamps_a_section_at_all() {
+    // JSON and YAML have no table-capture rule, so the two slots agree there: the form must not
+    // become format-dependent (verification item 1).
+    for (src, fmt) in [
+        ("{ \"host\": \"a\", \"servers\": [] }\n", DocFormat::Json),
+        ("host: a\nservers: []\n", DocFormat::Yaml),
+    ] {
+        let doc = parse(src, fmt);
+        let o = order(&["host", "tls", "servers"]);
+        assert_eq!(
+            header_slot(&doc, &root(), "tls", &o),
+            schema_slot(&doc, &root(), "tls", &o),
+            "{fmt:?}"
         );
     }
 }

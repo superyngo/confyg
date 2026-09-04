@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::fragment::{fragment, Emission};
-use crate::ordinal::{child_ordinal, schema_slot};
+use crate::ordinal::{child_ordinal, header_slot, schema_slot};
 
 /// Everything a host can ask the session to write. Extended, never renamed, by later tasks.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -150,7 +150,9 @@ fn grow(
         let mut parent = path.clone();
         parent.pop();
         let order = sibling_order(ir, &parent);
-        let index = schema_slot(doc, &parent, &key, &order);
+        // Header-bearing: the slot clamps past the plain keys the section would
+        // otherwise capture, not before the first header (`ordinal::header_slot`).
+        let index = header_slot(doc, &parent, &key, &order);
         Ok(Mutation::Insert {
             target: Target { parent, index },
             fragment: fragment(schema, template, doc.format(), Emission::HeaderBearing),

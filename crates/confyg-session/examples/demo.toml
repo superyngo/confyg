@@ -1,0 +1,12 @@
+# the address we bind to — keep this comment attached to host
+host = "0.0.0.0"
+
+# deliberately out of range, so you can see an Invalid field
+port = 99999
+
+# a key the schema has never heard of
+colour = "puce"
+
+[[servers]]
+host = "a.example"
+weight = 2

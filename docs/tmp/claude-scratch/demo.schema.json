@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["host"],
+  "properties": {
+    "host": { "type": "string", "title": "Bind address", "default": "127.0.0.1" },
+    "port": {
+      "type": "integer",
+      "title": "Port",
+      "minimum": 1,
+      "maximum": 65535,
+      "default": 8080,
+      "x-confyg": { "unit": "tcp" }
+    },
+    "mode": { "enum": ["dev", "prod"], "default": "dev" },
+    "cacheSize": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4096,
+      "x-confyg": { "affordance": "slider", "unit": "MiB" }
+    },
+    "token": { "type": "string", "writeOnly": true },
+    "tls": {
+      "type": "object",
+      "title": "TLS",
+      "properties": {
+        "cert": { "type": "string" },
+        "key": { "type": "string" }
+      }
+    },
+    "servers": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["host"],
+        "properties": {
+          "host": { "type": "string" },
+          "weight": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

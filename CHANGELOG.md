@@ -194,3 +194,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [`docs/debug/2026-09-04-phase-a-hands-on-findings.md`](docs/debug/2026-09-04-phase-a-hands-on-findings.md):
   a `ToggleGroup` offered where TOML's table-capture rule forbids the insert, and a `Delete`
   that leaves its entry's leading comment block behind.
+- 2026-09-04 — `crates/confyg-session/examples/try.rs` with two fixtures: a REPL over
+  `Session::dispatch` that renders the form, applies every v0.1 intent and prints the bytes, so
+  the write path can be driven before the web host exists.
+- 2026-09-04 — Upstream bill item 3, with an `#[ignore]`d regression test: TOML's `Delete` eats
+  the blank line after the entry, so a surviving comment block closes up against the next entry
+  and silently documents it. Not fixable confyg-side — **Comment policy** forbids deleting the
+  user's prose and the closed `Mutation` set has no whitespace operation. YAML and JSON are
+  unaffected, and the test's YAML half already passes.
+
+### Fixed
+
+- 2026-09-04 — An optional **Group** can now be enabled in TOML. `ordinal::header_slot` clamps a
+  header-bearing `Insert` the mirror way to `schema_slot`: upstream accepts a section only at or
+  after the parent's first existing header, so `[tls]` at its Schema slot was refused as
+  `Illegal("a table here would capture the keys above it")` and the toggle did nothing but emit a
+  notice. When the legal floor would split a comment block from the entry it documents, the slot
+  steps past that entry instead — legality and comment attachment are hard rules, **Schema
+  `properties` order** is not, so it yields. `upstream.md` *Insertion legality* now states the
+  real rule. Found by hand, not by the suite; see
+  [`docs/debug/2026-09-04-phase-a-hands-on-findings.md`](docs/debug/2026-09-04-phase-a-hands-on-findings.md).
+

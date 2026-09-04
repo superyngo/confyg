@@ -25,7 +25,9 @@ split lives in [the design record](../spec/2026-09-03-confyg-design.md) and is n
 
 The Form IR counts **entries**; `Target.index` counts **children**, comments included.
 `confyg_session::ordinal` is the only place that converts between them, and
-[`upstream.md`](upstream.md) *Index spaces* is the canonical description of why.
+[`upstream.md`](upstream.md) *Index spaces* is the canonical description of why. The same module
+answers where an absent key belongs: `schema_slot` for a plain key, `header_slot` for a
+section — TOML clamps the two in opposite directions (*Insertion legality*).
 
 ## Gates
 
@@ -44,3 +46,12 @@ Three CI jobs, each pinning an invariant rather than a style:
 | `confyg-session/tests/roundtrip.rs` | `(schema, document, [intent]) -> exact bytes`, every case in three formats, comment-interleaved |
 | `confyg-session/tests/postcondition.rs` | Every intent recompiles to the shape it predicted (D9) |
 | `confyg-session/tests/write_neutrality.rs` | Eleven Annotations x four Host profiles x three formats produce identical bytes |
+
+One test is `#[ignore]`d on purpose: `a_delete_keeps_the_blank_line_that_separates_a_comment_block`
+asserts the bytes upstream bill item 3 will make possible. `cargo test -- --ignored` shows what is
+still owed.
+
+`cargo run -p confyg-session --example try -- <schema> <config>` drives the whole write path from
+a terminal, which is how the two findings in
+[`../debug/2026-09-04-phase-a-hands-on-findings.md`](../debug/2026-09-04-phase-a-hands-on-findings.md)
+were found.
