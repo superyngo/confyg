@@ -10,26 +10,32 @@ editing a frozen document.
 
 ## The pin
 
-No released confy tag supports confyg: every release predates the `session` feature that
-`default-features = false` requires. Until that lands, confyg pins a revision.
+No released confy tag supports confyg, and `confy-core` declares **no Cargo features at all** on
+`main`: `pub mod session;` is unconditional, so `default-features = false` is currently a no-op
+rather than a gate. confyg passes it anyway — it is forward-compatible with the `session` feature
+requested in *The upstream bill*, and until that lands the CI grep for `confy_core::session` is
+what actually enforces ADR 0001. Until a supporting tag exists, confyg pins a revision.
 
 ```toml
 # during development
-confy-core = { git = "https://github.com/superyngo/confy", rev = "<sha>", default-features = false }
+confy-core = { git = "https://github.com/superyngo/confy", rev = "558bee7fd7317914662e5133b8a47aa7803bbb5b", default-features = false }
 serde_json = { version = "1", features = ["preserve_order"] }
 ```
 
-At confyg v0.1 this becomes `tag = "v1.1.0"` — a *minor* bump, because a new Cargo feature and a
-new public helper are additive API, not a patch. `Cargo.lock` is committed so a moved branch
-cannot silently change the build.
+That revision is confy `main` as of 2026-09-04. At confyg v0.1 this becomes `tag = "v1.1.0"` — a
+*minor* bump, because a new Cargo feature and a new public helper are additive API, not a patch.
+`Cargo.lock` is committed so a moved branch cannot silently change the build.
 
 Note for the record: `tag = "v1.0.1"` does not exist. confy's `Cargo.toml` says `1.0.1` and its
 `CHANGELOG.md` has a `[v1.0.1]` section, but the tag was never pushed; `v1.0.0` is the newest.
 
 ## Reachable API
 
-Everything confyg needs from the document and schema layers is `pub`. `ConfigDocument` must be
-imported for `apply` / `serialize` to be callable.
+Everything confyg needs from the document and schema layers is `pub`. The re-export surface is
+thin: items live in their defining modules, so the imports are
+`confy_core::model::any_doc::AnyDocument` and `confy_core::model::document::{ConfigDocument,
+DocFormat}` — `model::AnyDocument` does not resolve. `ConfigDocument` must be imported as a trait
+for `apply` / `serialize` to be callable.
 
 | Need | Item |
 |---|---|

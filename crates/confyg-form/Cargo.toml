@@ -1,0 +1,19 @@
+[package]
+name = "confyg-form"
+description = "Pure Schema -> Form IR compiler for confyg. No I/O, no state."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+confy-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+jsonschema.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+
+[lints]
+workspace = true

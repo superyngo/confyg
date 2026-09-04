@@ -60,3 +60,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   widget set, Repeat cards and summary and Form search, real-binary check). Every task is
   test-first and ends with a commit; Tasks 9, 14, and 15 are ordered early because D7, D9, and
   Write-neutrality are the failures that report success.
+- 2026-09-04 — Scaffolded the Rust workspace on a pinned `confy-core`
+  (`rev = 558bee7f`, `default-features = false`) with `serde_json`'s `preserve_order` enabled
+  workspace-wide per design §2, added `crates/confyg-form` and a byte-identical TOML round-trip
+  test through the public API, and added `.github/workflows/ci.yml` with the gate that fails if
+  `confy_core::session` is ever referenced. Corrected `docs/reference/upstream.md`: `confy-core`
+  declares no Cargo features on `main`, so `default-features = false` is a forward-compatible
+  no-op and the grep gate is what enforces ADR 0001; recorded the real import paths
+  (`model::any_doc::AnyDocument`, `model::document::{ConfigDocument, DocFormat}`).

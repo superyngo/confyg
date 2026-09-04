@@ -1,0 +1,22 @@
+[workspace]
+members = ["crates/confyg-form"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/superyngo/confyg"
+
+# `default-features = false` is forward-compatible with the `session` Cargo feature
+# requested in docs/reference/upstream.md *The upstream bill*; confy-core declares no
+# features today, so the flag is a no-op and the CI grep gate is what enforces ADR 0001.
+[workspace.dependencies]
+confy-core = { git = "https://github.com/superyngo/confy", rev = "558bee7fd7317914662e5133b8a47aa7803bbb5b", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+jsonschema = { version = "0.30", default-features = false }
+insta = { version = "1", features = ["json"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
