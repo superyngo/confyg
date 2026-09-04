@@ -16,7 +16,11 @@ jobs:
         run: cargo test --workspace
       - name: confy-core session must not be referenced
         run: |
-          if rg -q 'confy_core::session' crates/; then echo "session module referenced"; exit 1; fi
+          # ADR 0001 bans the reference and the module docs say so in prose, so the gate
+          # reads code only — `confyg-form/src/lib.rs`'s own `//!` line trips a bare grep.
+          if rg -q --pcre2 '^(?!\s*//).*confy_core::session' crates/; then
+            echo "ADR 0001: confy_core::session is referenced in code"; exit 1
+          fi
 
   write-neutrality:
     # ADR 0004's invariant gets its own required job so the gate is visible: presentation input
@@ -54,3 +58,24 @@ jobs:
       - run: npm run typecheck -w web
       - run: npm test -w web
       - run: npm run build -w web
+
+  e2e:
+    # Design §11 item 5: the flow, on the real build. Its own job rather than a step in `web`,
+    # which stays the sub-minute gate — this one builds the WASM and downloads a browser.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      # A prior step, never inside `webServer`: the bundle's own build is what Playwright
+      # starts, and a WASM build inside it would blow the readiness window.
+      - run: wasm-pack build crates/confyg-ffi --target web
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

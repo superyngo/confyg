@@ -59,13 +59,17 @@ section — TOML clamps the two in opposite directions (*Insertion legality*).
 
 ## Gates
 
-Four CI jobs, each pinning an invariant rather than a style:
+Five CI jobs, each pinning an invariant rather than a style:
 
 - `rust` — the workspace test suite, plus a grep that fails if `confy_core::session` is ever
-  referenced (ADR 0001).
+  referenced *in code* (ADR 0001). The pattern skips comment lines, because the module docs
+  discuss the ban in prose.
 - `write-neutrality` — presentation input may never change a written byte (ADR 0004).
 - `wasm` — the boundary still builds for `wasm32-unknown-unknown`.
-- `web` — the renderer typechecks, its tests pass, and the production bundle builds.
+- `web` — the renderer typechecks, its tests pass, and the production bundle builds. Stays the
+  sub-minute gate: no browser, no WASM.
+- `e2e` — the flow, on the real build (design §11 item 5). Builds the WASM, builds the bundle,
+  drives Chromium. Its own job rather than a step in `web` for the obvious reason.
 
 ## Tests worth knowing about
 
@@ -83,6 +87,7 @@ Four CI jobs, each pinning an invariant rather than a style:
 | `web/src/repeat.test.ts` | The count badge, both bounds gates at the fixture's own ceiling and floor, cards vs scalar rows, and the entry index a card publishes |
 | `web/src/summary.test.ts` | An uncompilable Schema reads *validation unavailable*, never *no problems* |
 | `web/src/search.test.ts` | A hit maps to the section holding it, and the host preserves the compiler's order |
+| `tests/e2e/first-run.spec.ts` | The whole flow on the built artifact — open → add a Repeat item → set values → Unset one → save — asserting the *emitted bytes* (design §11 item 5) |
 
 One test is `#[ignore]`d on purpose: `a_delete_keeps_the_blank_line_that_separates_a_comment_block`
 asserts the bytes upstream bill item 3 will make possible. `cargo test -- --ignored` shows what is
@@ -92,3 +97,9 @@ still owed.
 a terminal — `find <query>` runs **Form search** the same way — which is how the two findings in
 [`../debug/2026-09-04-phase-a-hands-on-findings.md`](../debug/2026-09-04-phase-a-hands-on-findings.md)
 were found.
+
+`wasm-pack build crates/confyg-ffi --target web && npm run test:e2e` runs the real-binary check.
+The WASM build is a *prior* step, never inside Playwright's `webServer`, which builds and
+previews the bundle itself. That run is how the three findings in
+[`../debug/2026-09-04-real-binary-findings.md`](../debug/2026-09-04-real-binary-findings.md)
+were found — none of them visible to any test above it, which is the argument for the job.

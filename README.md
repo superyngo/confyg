@@ -13,8 +13,23 @@ model and JSON Schema subsystem confyg reuses.
 
 ## Status
 
-Design phase. See [`docs/spec/`](docs/spec/README.md) for the design record and
-[`CONTEXT.md`](CONTEXT.md) for the documentation index. No implementation yet.
+v0.1. The Rust core and the web host are implemented: a `Schema -> Form IR` compiler, a session
+that lowers **Setter intents** onto a lossless CST, a WASM boundary, and a renderer.
+[`docs/reference/`](docs/reference/README.md) describes current behavior;
+[`CONTEXT.md`](CONTEXT.md) is the documentation index.
+
+```sh
+cargo test --workspace                                   # the core
+npm ci && npm run typecheck -w web && npm test -w web    # the renderer
+wasm-pack build crates/confyg-ffi --target web           # the boundary
+npm run build -w web && npm run test:e2e                 # the flow, on the real build
+```
+
+Try it from a terminal without a browser:
+
+```sh
+cargo run -p confyg-session --example try -- <schema.json> <config.toml>
+```
 
 ## Documentation
 

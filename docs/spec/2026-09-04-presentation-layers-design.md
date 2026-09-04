@@ -1,5 +1,8 @@
 # confyg presentation layers
-Status: Draft
+Status: Superseded in part — every v0.1 behavior described here now lives in
+[`../reference/presentation.md`](../reference/presentation.md), which is canonical. The two open
+questions in §10 (the `Density` mapping, the carrier for preset value sets) and the Partitions
+v0.1 does not implement stay this record's.
 
 The design record for how a **Form IR** becomes something a person looks at: which layer decides
 what, what vocabulary carries a presentation decision, how a **Widget** degrades on a host that

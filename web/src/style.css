@@ -99,11 +99,12 @@ body {
   border-left: 1px solid var(--border);
   padding-left: calc(var(--indent) / 2);
 }
-/* An Absent collection keeps its heading and hides its contents — the entries live in
-   `.repeat-items` now, so the rule names that wrapper rather than a direct child. */
+/* An Absent collection keeps its heading and hides its entries — the entries live in
+   `.repeat-items` now, so the rule names that wrapper rather than a direct child. `Add`
+   is deliberately not hidden: an absent collection is exactly the one the core's
+   Absent-parent lowering fills, so hiding it left no way to reach that path. */
 .node.group[data-occupancy="absent"] > .node,
-.node.repeat[data-occupancy="absent"] > .repeat-items,
-.node.repeat[data-occupancy="absent"] > .repeat-add {
+.node.repeat[data-occupancy="absent"] > .repeat-items {
   display: none;
 }
 .field {

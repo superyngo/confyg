@@ -1,5 +1,9 @@
 # confyg design
-Status: Draft
+Status: Superseded in part — every v0.1 behavior described here now lives in
+[`../reference/form-ir.md`](../reference/form-ir.md),
+[`../reference/intents.md`](../reference/intents.md) and
+[`../reference/crates.md`](../reference/crates.md), which are canonical. The v0.2+ tiers, the
+deferred intents, and §11's verification plan stay this record's.
 
 The design record for confyg: a schema-driven **Setter** for TOML / JSON(C) / YAML
 configuration files, built on [confy](https://github.com/superyngo/confy)'s `confy-core`.

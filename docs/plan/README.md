@@ -8,9 +8,10 @@ A plan shares its kebab title with the spec it derives from, so the pair matches
 
 ## In progress
 
-- [2026-09-04-confyg-design.md](2026-09-04-confyg-design.md) - `Draft` - v0.1, 20 tasks
+_None._
 
 ## Landed
 
 | Date | Document | Status |
 |---|---|---|
+| 2026-09-04 | [confyg v0.1 implementation plan](2026-09-04-confyg-design.md) | Shipped — 20/20 tasks |

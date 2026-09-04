@@ -263,6 +263,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   absent from its key. `web/src/__fixtures__/demo-snapshot.json` is regenerated from them, so
   both bounds gates, both item shapes and the non-key search axis are pinned against real core
   output rather than a hand-built IR.
+- 2026-09-04 — Phase B, Task 20: the **real-binary check**, design §11 item 5. Playwright at the
+  repo root (`playwright.config.ts`, `tests/e2e/first-run.spec.ts`) drives the whole flow —
+  open → add a **Repeat group** item → set values → **Unset** one → save — against
+  schemastore's real `.eslintrc` Schema on the *built* bundle, and asserts the bytes the host
+  actually emits: the value written is there, the Unset member is gone, and the untouched region
+  is byte-identical. `webServer` builds the bundle and serves it with `vite preview`; the WASM
+  build is a prior step, never inside it. CI gains a fifth job, `e2e`, beside `wasm` rather than
+  folded into `web`, which stays the sub-minute gate. `savedText` reads a real download:
+  deleting `window.showSaveFilePicker` before load takes the non-Chromium branch `host-io.ts`
+  already documents, so the download path is the machine-tested one and the in-place File System
+  Access write is hand-verified — stated as such in
+  [`docs/reference/presentation.md`](docs/reference/presentation.md), like the `#[ignore]`d byte
+  test in `crates.md`.
+- 2026-09-04 — `docs/reference/` gained one contract file per subsystem — `form-ir.md`,
+  `intents.md`, `presentation.md` — describing current behavior, so both design records could
+  hand over the v0.1 half of their text and flip to `Superseded in part`. The v0.1 plan moved to
+  `docs/plan/README.md`'s Landed table at 20/20. `crates.md` records the fifth gate, the e2e
+  test and the command that runs it. Recorded rather than left implicit: **Form search** returns
+  a whole subtree at one identical score when a query names a container — the Path is a scored
+  axis and every descendant's Path contains the parent key — and v0.1 ships it, because the Path
+  tiebreak already orders the rows parent-first and any dominant-ancestor rule that collapsed
+  them would also suppress a descendant that matched on its own title or description.
+- 2026-09-04 — D1 and D7 reproduced by hand on the real build, both correct: a key inserted into
+  a TOML table that already has a sub-table lands inside the table, above the sub-table header,
+  in **Schema `properties` order** with the separating blank line intact; a value set in a file
+  with a comment between every sibling leaves every comment attached to the entry it documents.
+  Recorded in
+  [`docs/debug/2026-09-04-real-binary-findings.md`](docs/debug/2026-09-04-real-binary-findings.md).
 
 ### Fixed
 
@@ -280,4 +308,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   boundary in snake_case against the IR's documented contract; `rename_all_fields` fixes it.
   Found by feeding a real snapshot to the new renderer, where `Unknown` rendered an empty
   preview.
+- 2026-09-04 — The built web host now loads the core. `boundary.ts` imports the `wasm-pack` glue
+  through a non-literal specifier so a fresh checkout typechecks before the WASM exists, which
+  left the browser resolving `/crates/confyg-ffi/pkg/confyg_ffi.js` — a URL neither the dev
+  server nor `dist/` served, so every page load ended in `Failed to fetch dynamically imported
+  module` and an empty form. A `web/vite.config.ts` plugin makes that one URL real in both,
+  serving the generated directory in dev and copying it beside the bundle on build, skipped when
+  the WASM is absent so CI's `web` job still builds. The glue is copied, never bundled, and
+  `boundary.ts` is unchanged. The renderer had never talked to the core in a browser; no unit
+  test could see it, because the jsdom suite renders a captured `SetterSnapshot`.
+- 2026-09-04 — An **Absent** Repeat can now be given its first item. `style.css` hid
+  `.repeat-add` at `data-occupancy="absent"`, which is exactly the collection **Absent-parent
+  lowering** exists to fill — `lower.rs` puts a header-bearing fragment in the parent for that
+  case and design §11 item 2 makes it mandatory in every format — so every absent array in every
+  Schema was unfillable from the web host. The rule no longer names the button; an absent Repeat
+  still collapses its empty `.repeat-items` and keeps its heading and count.
+- 2026-09-04 — The `rust` CI gate reads code again. `rg -q 'confy_core::session' crates/` matched
+  the prose in `confyg-form/src/lib.rs`'s own module docs — which say the module is never
+  referenced — so the ADR 0001 gate had been failing on a sentence rather than on a reference.
+  The pattern now skips comment lines and still catches both a `use` and an inline path.
+
+### Known issues
+
+- 2026-09-04 — A text edit committed on blur swallows the next click: the commit re-renders the
+  form by replacing `#form`'s children, so a control clicked immediately after typing is
+  detached mid-click and its intent is lost, once, silently. Repro, evidence that the core and
+  the boundary are not involved, and why the fix is a renderer decision rather than a patch are
+  in
+  [`docs/debug/2026-09-04-real-binary-findings.md`](docs/debug/2026-09-04-real-binary-findings.md)
+  finding 3. `tests/e2e/first-run.spec.ts` sequences around it with an explicit `blur()` and says
+  so at the call site.
 
