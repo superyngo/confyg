@@ -5,3 +5,5 @@
 
 pub mod facts;
 pub mod ir;
+pub mod notice;
+pub mod vocab;

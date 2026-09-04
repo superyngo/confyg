@@ -80,3 +80,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `additionalProperties`) plus types, enum/const, bounds, lengths, `pattern`, `multipleOf` and
   `uniqueItems`. `AdditionalProperties::{Schema, Open, Closed}` encodes design §7's three-form
   table; a malformed keyword reads as absent so a broken Schema still projects a complete form.
+- 2026-09-04 — Added `crates/confyg-form/src/vocab.rs` and `notice.rs`: the nine-member
+  Presentation vocabulary (`affordance`, `order`, `unit`, `collapsed`, `demoted`, `label`,
+  `help`, `labelFrom`, `optionLabels`) parsed off the `x-confyg` Annotation, plus
+  `profile_hint` for the root-only Profile hint. An unknown or wrongly-typed member is a
+  `Notice` and never costs the members beside it (ADR 0005); `profile` is not a member and does
+  not warn.
