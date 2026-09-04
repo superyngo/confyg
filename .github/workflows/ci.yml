@@ -28,3 +28,16 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Write-neutrality
         run: cargo test -p confyg-session --test write_neutrality
+
+  wasm:
+    # The boundary must keep compiling for the target every non-native host runs on.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - name: Build the WASM boundary
+        run: wasm-pack build crates/confyg-ffi --target web

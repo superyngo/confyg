@@ -1,0 +1,27 @@
+[package]
+name = "confyg-ffi"
+description = "The WASM boundary for confyg: one dispatch call and one live check, JSON in, JSON out"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+confy-core.workspace = true
+confyg-session = { path = "../confyg-session" }
+serde.workspace = true
+serde_json.workspace = true
+wasm-bindgen = "0.2"
+
+# See `.cargo/config.toml`: this only enables the JS backend the cfg selects.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

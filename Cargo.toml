@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/confyg-form", "crates/confyg-session"]
+members = ["crates/confyg-form", "crates/confyg-session", "crates/confyg-ffi"]
 resolver = "2"
 
 [workspace.package]

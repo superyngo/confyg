@@ -1,0 +1,5 @@
+# `ahash` (via `jsonschema` and `taplo`) pulls `getrandom` 0.3, which has no default backend on
+# `wasm32-unknown-unknown`: it must be told to use the JS crypto API. This is a build-target
+# fact, not a confyg choice, so it lives here rather than in a crate manifest.
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']

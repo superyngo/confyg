@@ -178,3 +178,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   run must produce byte-identical output plus an identical refusal log. Verified the property
   bites by making a `Replace` fragment read `unit`: the suite fails naming the Annotation, the
   profile, the format and the case (ADR 0004, verification item 6).
+- 2026-09-04 — Added the `confyg-ffi` crate: the WASM boundary is exactly `dispatch(handle,
+  request_json) -> snapshot_json` plus `check(handle, path_json, literal)`, and it holds no
+  logic, so a native host can link `confyg-session` directly and skip it. A malformed request
+  comes back as an error envelope rather than trapping, because a panic across the boundary
+  loses the session. `check` runs a live `pattern` check through the *validator's own* engine on
+  a throwaway copy of the Document — a lookahead `fancy-regex` accepts and Rust's `regex`
+  rejects is asserted, so form warnings and Violations can never disagree. `Request` and
+  `SessionCommand` became externally tagged so the FFI JSON has no colliding `kind`.
+  `.cargo/config.toml` selects `getrandom`'s JS backend for `wasm32-unknown-unknown`, and CI
+  gained a `wasm` job running `wasm-pack build`.

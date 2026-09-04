@@ -12,7 +12,7 @@ use confy_core::model::any_doc::AnyDocument;
 use confy_core::model::convert::convert;
 use confy_core::model::document::{ConfigDocument, DocFormat};
 use confy_core::schema::hints::detect_hint;
-use confy_core::schema::types::SchemaSource;
+use confy_core::schema::types::{SchemaSource, Violation};
 use confyg_form::affordance::{Density, HostProfile};
 use confyg_form::compile::project;
 use confyg_form::ir::FormNode;
@@ -23,16 +23,17 @@ use serde_json::Value;
 
 use crate::lower::{lower, SetterIntent};
 
-/// Everything a host may ask of a session.
+/// Everything a host may ask of a session. Externally tagged, because the FFI boundary carries
+/// it as JSON and an internal tag would collide with the command's own `kind`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub enum Request {
     Intent(SetterIntent),
     Command(SessionCommand),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub enum SessionCommand {
     Open {
         text: String,
@@ -250,6 +251,61 @@ impl Session {
                 .notices
                 .push(Notice::new("session.convert.parse", e.to_string())),
         }
+    }
+
+    /// Violations for a literal the user is still typing, from the **validator's own engine**.
+    ///
+    /// The alternative — re-implementing `pattern` host-side with a different regex flavour —
+    /// makes a form warning that can disagree with a Violation, and `jsonschema` runs
+    /// `fancy-regex`, which accepts lookarounds Rust's `regex` rejects (design §7).
+    ///
+    /// The probe is a *copy* of the document: nothing here is committed, so a live check can
+    /// never write.
+    pub fn check(&self, path: &confy_core::model::node::Path, literal: &str) -> Vec<Violation> {
+        let (Some(doc), Some(schema)) = (self.doc.as_ref(), self.schema.as_ref()) else {
+            return Vec::new();
+        };
+        let Ok(mut probe) = AnyDocument::from_str_as(&doc.serialize(), doc.format()) else {
+            return Vec::new();
+        };
+        let key = match path.last() {
+            Some(confy_core::model::node::Seg::Key(k)) => Some(k.clone()),
+            _ => None,
+        };
+        // The literal arrives exactly as typed, so it may not be a valid value literal on its
+        // own (`xyz` is a bare TOML word). Try it verbatim first — that is what a number or a
+        // bool needs — then as a quoted string, which is what a half-typed text field is.
+        let quoted = Value::String(literal.to_owned()).to_string();
+        let mut applied = false;
+        for candidate in [literal, quoted.as_str()] {
+            let fragment = probe.scalar_fragment(key.as_deref(), candidate);
+            if probe
+                .apply(confy_core::model::document::Mutation::Replace {
+                    path: path.clone(),
+                    fragment,
+                })
+                .is_ok()
+            {
+                applied = true;
+                break;
+            }
+        }
+        if !applied {
+            return Vec::new();
+        }
+        let compiled = project(schema, Some(&probe), &self.host);
+        summary(&compiled.root, &compiled.state)
+            .items
+            .into_iter()
+            .filter(|item| &item.path == path)
+            .map(|item| Violation {
+                path: item.path,
+                pointer: String::new(),
+                keyword: item.keyword,
+                message: item.message,
+                category: confy_core::schema::types::Category::Value,
+            })
+            .collect()
     }
 
     fn snapshot(&self) -> SetterSnapshot {
