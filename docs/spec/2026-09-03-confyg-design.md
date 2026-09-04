@@ -12,7 +12,13 @@ and are cited, not restated, here. Three decisions this design rests on are reco
 [ADR 0002](../adr/0002-schema-driven-projection-and-three-state-presence.md)
 (**Schema-driven projection** and **Presence**), and
 [ADR 0003](../adr/0003-form-ir-shape-presence-scope-and-default-equivalence.md)
-(**Presence** scope, collection unification, default equivalence).
+(**Presence** scope, collection unification, default equivalence). How a **Form IR** becomes
+something a person looks at is a separate design record,
+[`2026-09-04-presentation-layers-design.md`](2026-09-04-presentation-layers-design.md), resting on
+[ADR 0004](../adr/0004-presentation-layer-model-and-write-neutrality.md) (the layer model and
+**Write-neutrality**) and
+[ADR 0005](../adr/0005-presentation-profile-as-a-second-carrier.md) (one vocabulary, two
+carriers).
 
 ---
 
@@ -133,6 +139,7 @@ struct FieldMeta {
     read_only: bool,
     write_only: bool,
     unit: Option<String>,        // Annotation only; no Schema keyword carries this
+    intended: Widget,            // what derivation chose, before the Host capability clamp
     constraints: Vec<Constraint>,// what to render as guidance and check live
     raw: bool,                   // Raw literal fallback is active on this Field
 }
@@ -148,9 +155,14 @@ different facts. `Presence::Absent` reserves `remarked` for v0.2 (§9).
 It is a **Field**-like node rather than a **Variant group** because it holds one value.
 
 `Widget` is resolved from the Schema keywords governing the **Field**, in this precedence:
-`const` / `readOnly` → display-only; **Raw literal fallback** → raw text; `enum` → menu;
-**Annotation** override; `format` → the matching specialized control; `type` → the primitive
-control. §7 lists every **Widget** and the tier it lands in.
+`const` / `readOnly` → display-only; **Raw literal fallback** → raw text; **Annotation** or
+**Presentation profile** override; `enum` → the menu family; `format` → the matching specialized
+control; `type` → the primitive control. The resolved **Widget** is then clamped along its
+**Degradation ladder** to what the host declared it can render, and `intended` keeps the
+pre-clamp choice so a substitution can be explained. §7 lists every **Widget** and the tier it
+lands in;
+[`2026-09-04-presentation-layers-design.md`](2026-09-04-presentation-layers-design.md) owns the
+**Affordance** layer — the override vocabulary, the menu-family thresholds, and every ladder.
 
 `Constraint` is the renderable subset of the validation vocabulary — bounds, `multipleOf`,
 length, `pattern`, `uniqueItems` — kept on the **Field** so guidance text does not require a
@@ -186,8 +198,8 @@ matters:
    (ADR 0003); `prefixItems` → **Tuple group**; `additionalProperties` / `patternProperties` as a
    *schema* → **Map group**; `oneOf` / `anyOf` of objects → **Variant group**; `anyOf` of scalars
    → **Union field**; otherwise **Field**.
-5. **Order.** Schema `properties` order as it appears in the schema file, overridable by an
-   `x-order` **Annotation**. Required **Fields** are *not* hoisted — the Schema author's grouping
+5. **Order.** Schema `properties` order as it appears in the schema file, overridable by
+   `x-confyg.order`. Required **Fields** are *not* hoisted — the Schema author's grouping
    is more meaningful than a required-first sort. This is the **Form IR**'s order and the order
    the UI shows; the **Document**'s order may legitimately differ (§8).
 6. **Overlay.** For every **Path** — leaf and container alike — look up the **Document**, assign
@@ -288,26 +300,31 @@ enter raw mode deliberately, which is what makes A23 possible.
 | A1 | Free text | `type: string` | text | v0.1 |
 | A2 | Constrained text | `pattern` | text + live check via the validator's engine (`fancy-regex`; lookaround and backreferences accepted) | v0.1 |
 | A3 | Multiline text (certificate, key, script) | `contentMediaType`, long `maxLength` | textarea; YAML block scalar | v0.2 |
-| A4 | Secret | `writeOnly` | masked with reveal | v0.2 |
-| A5 | Single choice | `enum` | radio group ≤4 options, searchable menu above; the `default` appears as the inherited option | v0.1 |
+| A4 | Secret | `writeOnly` | masked with reveal; where the host cannot mask, it degrades to plain text with an explicit **Notice**, never silently | v0.2 |
+| A5 | Single choice | `enum` | `radio` ≤4 options, `menu` 5–12, `filterable-menu` above; the `default` appears as the inherited option | v0.1 |
 | A6 | Multiple choice | `array` + `items.enum` + `uniqueItems` | **Repeat group** with a checkbox-set Widget (ADR 0003) | v0.2 |
 | A7 | Boolean | `type: boolean` | three-state control (ADR 0002) | v0.1 |
 | A8 | Bounded number | `minimum` / `maximum` | stepper; slider when both bounds exist | v0.1 |
 | A9 | Stepped number | `multipleOf` | stepper increment | v0.1 |
-| A10 | Number with unit | **Annotation** | stepper + unit badge | v0.2 |
+| A10 | Number with unit | `x-confyg.unit` | stepper + unit badge | v0.2 |
 | A11 | Port | `integer` 1–65535 | port control | v0.3 |
 | A12 | Date / time / duration | `format: date-time`, `date`, `time`, `duration` | picker; composite for duration | v0.2 |
-| A13 | Path | `format: uri`, **Annotation** | text + native picker where the host has one | v0.3 |
+| A13 | Path | `format: uri`, `x-confyg.affordance` | text + native picker where the host has one | v0.3 |
 | A14 | URL | `format: uri` | text + reachability probe | v0.3 |
 | A15 | IP address | `format: ipv4` / `ipv6` | segmented text | v0.3 |
 | A16 | UUID | `format: uuid` | text + generate | v0.3 |
 | A17 | Regular expression | `format: regex` | monospace text + compile check via the validator's engine | v0.3 |
-| A18 | Colour | **Annotation** | swatch | v0.3 |
+| A18 | Colour | `x-confyg.affordance` | swatch | v0.3 |
 | A19 | Embedded file content | `contentEncoding: base64` | file picker | v0.3 |
 | A20 | Nullable | `type: ["string","null"]` | control + explicit null. TOML has no null, so **Absent** is the only representation there | v0.2 |
 | A21 | Fixed / read-only | `const`, `readOnly` | display-only badge; **Unset** is offered on a `readOnly` **Field** that is **Set**, since removing a value confyg may not write is still legal | v0.1 |
 | A22 | Suggested values | `examples` | suggestion chips | v0.2 |
 | A23 | Interpolated value (`${VAR}`) | not expressible in Schema | **Raw literal fallback**; the type mismatch is a **Violation** only | v0.1 |
+
+**Widget** names in this table are the ones the **Degradation ladder** table names, and each row's
+tier is when its *ideal* control lands; the ladder's terminal control is available from v0.1 in
+every case. Both live in
+[`2026-09-04-presentation-layers-design.md`](2026-09-04-presentation-layers-design.md) §3–§4.
 
 ### Container patterns
 
@@ -417,15 +434,20 @@ fabricate failures. Because the validator names offending keys in the message on
 **Template** generation with `title` / `description` comments; menus, three-state booleans,
 bounded numbers; **Repeat group** with `+` and bounds, including scalar lists; **Raw literal
 fallback**; required markers; **Unknown group**; violation summary; all three **Doc formats**;
-every D-row hazard. Web host only.
+every D-row hazard. Presentation: the eight layers and **Write-neutrality**, the **Presentation
+vocabulary** as `x-confyg`, **Host capability** with compile-time clamping, `scroll` and
+`sections`, **Form search**, and the added **Appearance tokens**. Web host only.
 
 **v0.2** — **Map group**, optional-section toggles, **Tuple group**, secrets, multiline, units,
 multi-choice, date/time, examples, deprecation, order-significant lists and `MoveRepeatItem`,
 Draft 7 normalization, external `$ref`, catalog matching, diff preview, and `Remark` as a
-value-preserving alternative to **Unset** (`Presence::Absent { remarked }`).
+value-preserving alternative to **Unset** (`Presence::Absent { remarked }`). Presentation: the
+**Presentation profile** sidecar with its **Profile hint** and sibling discovery, `tabs`, the
+combobox that implements `filterable-menu`, and the **Lexicon** translation tables.
 
 **v0.3** — **Variant group**, **Union field**, and conditional structure (B11–B16), the
-specialized `format` widgets, Schema-string i18n, virtualization, presets. TUI host.
+specialized `format` widgets, Schema-string i18n, virtualization, presets. Presentation:
+`wizard` and the TUI's **Host capability** profile. TUI host.
 
 `oneOf` and conditional structure are deliberately last: they are the parts every surveyed form
 engine handles badly, and they should be designed against a settled **Form IR** rather than
@@ -435,13 +457,13 @@ requirement asks for reordering, and it is better added once D7 is pinned by fix
 
 ## 10. Web host
 
-Left: search over **Field** titles and descriptions, not only keys, plus section navigation.
-Centre: the form. Right or bottom: the violation summary, and the diff preview at v0.2. A
-persistent banner names the keyword and pointer when the **Schema** could not be compiled for
-validation.
+Left: **Form search** over **Field** titles and descriptions, not only keys, plus **Partition**
+navigation. Centre: the form. Right or bottom: the violation summary, and the diff preview at
+v0.2. A persistent banner names the keyword and pointer when the **Schema** could not be compiled
+for validation.
 
 Every **Field** renders title, description, its control, **Ghost text** for an **Absent**
-default, a unit badge where an **Annotation** supplies one, its warnings inline, and — where the
+default, a unit badge where `x-confyg.unit` supplies one, its warnings inline, and — where the
 control can express it — the Schema `default` as an explicit inherited option, which is how
 **Unset** is offered. A control that cannot express its default keeps a separate **Unset**
 affordance. A `locked` node renders its resolved value with an explanatory notice and no write
@@ -449,17 +471,23 @@ affordance.
 
 A **Repeat group** renders as a card list with `+ Add <item title>` and a `(3/5)` count badge on
 its header, and per-card remove and duplicate affordances (move at v0.2). A card is titled from
-`label_from` — the first of `name`, `id`, `title`, `host` the item schema declares — falling back
-to `<title> #<n>`. A **Repeat group** of scalars renders as rows rather than cards.
+`x-confyg.labelFrom`, defaulting to the first of `name`, `id`, `title`, `host` the item schema
+declares and falling back to `<title> #<n>`. A **Repeat group** of scalars renders as rows rather
+than cards.
 
 Ported wholesale from confy: the i18n catalog and lookup, the OKLCH token set and light/dark
 themes, the responsive chrome-folding ladder, file open/save across browser / Tauri / VS Code
-hosts, and the format-conversion dialog. UI behavior follows `wens-dev-principles ui`.
+hosts, and the format-conversion dialog. confy's data-type colours are deliberately *not*
+inherited, and confyg adds the **Appearance tokens** its own states need. UI behavior follows
+`wens-dev-principles ui`; **Partition**, **Traversal**, and every **Degradation ladder** are owned
+by [`2026-09-04-presentation-layers-design.md`](2026-09-04-presentation-layers-design.md).
 
 ## 11. Verification
 
-1. **Compiler snapshots.** `(schema, document) → Form IR` serialized and compared, one fixture
-   set per **Doc format**, plus fixtures for each pattern in §7 as its tier lands. Includes a
+1. **Compiler snapshots.** `(schema, document, profile, HostProfile) → Form IR` serialized and
+   compared, one fixture set per **Doc format** and one per **Host capability** profile, so a
+   clamped **Widget** and its retained `intended` are asserted rather than inspected. Plus
+   fixtures for each pattern in §7 as its tier lands. Includes a
    Schema whose `pattern` cannot compile, which must still project a complete form.
 2. **Round-trip matrix.** `(schema, document, [Setter intent]) → expected bytes`, covering
    **intent × target node kind × Doc format** rather than one fixture set per format. These are
@@ -469,24 +497,34 @@ hosts, and the format-conversion dialog. UI behavior follows `wens-dev-principle
      lowering**.
    - *Comments interleaved* between every sibling, which is what catches D7's misplacement.
    - **Order divergence**: a Schema declaring a scalar after an object, in TOML.
-3. **Presence and Occupancy matrix.** For every **Widget**, the three **Presence** states and the
-   transitions between them, including that **Unset** deletes rather than writes and that setting
-   a value equal to the `default` is **Unset**; for every container, absent → empty → populated
-   and back.
+3. **Presence and Occupancy matrix.** For every **Widget** — including each **Degradation
+   ladder**'s terminal control, which must express all three states too — the three **Presence**
+   states and the transitions between them, including that **Unset** deletes rather than writes
+   and that setting a value equal to the `default` is **Unset**; for every container, absent →
+   empty → populated and back.
 4. **Intent postcondition.** An intent counts as verified only when the mutated **Document**
    recompiles to the **Form IR** shape the intent predicted — cheap, since §4 recompiles anyway
    and `apply` returns the new text. This is the guard against D9.
 5. **Real-binary check.** Against a real published Schema, exercise open → add a **Repeat group**
    item → set values → **Unset** one → save, on the actual web build. Green unit tests are not
    evidence that the flow works.
+6. **Write-neutrality.** For a fixed `(schema, document, [Setter intent])`, the whole pipeline run
+   under *N* presentation profiles × *M* **Host capability** profiles must produce byte-identical
+   output. A property over presentation inputs rather than another fixture matrix: it asserts that
+   nothing in the **Affordance**, **Flow**, **Lexicon**, or **Appearance** layer can reach the
+   file, and pins **Host capability** as pure data as a side effect.
 
 ## 12. Open questions
 
-- The **Annotation** vocabulary is not yet enumerated. It must be specified before v0.2, since
-  A10, A13, A18, and `x-order` depend on it. It stays optional in every case, and `label_from`
-  should be reconsidered as an **Annotation** rather than the current hardcoded key list.
+- None outstanding for the **Annotation** vocabulary. Two remain in
+  [`2026-09-04-presentation-layers-design.md`](2026-09-04-presentation-layers-design.md) §10: the
+  `Density` mapping onto confy's row-height scales, and the carrier for preset value sets (C10).
 
 Resolved since drafting: `confy-core`'s Schema introspection stays in `confyg-form` rather than
 being upstreamed, since `schema::hints_edit` reads none of the eight keywords confyg needs and
 this is pure computation on confyg's own cadence (see [`upstream.md`](../reference/upstream.md));
 `MoveRepeatItem` belongs to v0.2 with B10 (§9).
+
+The **Annotation** vocabulary is likewise resolved: it is the nine-member **Presentation
+vocabulary**, carried by `x-confyg` and by a **Presentation profile** (ADR 0005), and
+`label_from` became `x-confyg.labelFrom` as that question anticipated.

@@ -44,3 +44,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tokens, the Write-neutrality property test, and the presentation tiers. Extended the glossary
   with 15 terms and rewrote the Annotation entry, which now names `x-confyg` as the sole
   annotation and the Presentation profile as its second carrier.
+- 2026-09-04 — Reconciled `docs/spec/2026-09-03-confyg-design.md` with the presentation layers:
+  `FieldMeta` gains `intended` (the pre-clamp Widget); Widget resolution cites the Affordance
+  layer and Degradation ladder rather than restating a precedence list; `x-order` became
+  `x-confyg.order` and the hardcoded `label_from` key list became `x-confyg.labelFrom` with that
+  list as its derivation default; A5 carries the menu-family thresholds and A4 states that
+  masking degrades with a Notice rather than silently; the release tiers absorb the presentation
+  work; verification gained a Host capability axis, ladder-terminal coverage, and
+  Write-neutrality's property test; the Annotation open question is resolved.
