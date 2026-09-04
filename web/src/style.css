@@ -1,0 +1,178 @@
+/* The renderer shell's layout. Every colour comes from tokens.css — no literal colour
+   appears below this line, so a theme change is one attribute. */
+@import "./tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--fg);
+  background: var(--bg);
+}
+
+.chrome {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+.chrome button,
+.chrome label {
+  min-height: var(--row-h);
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--fg);
+  background: var(--surface);
+  font: inherit;
+  cursor: pointer;
+}
+.chrome .spacer {
+  flex: 1;
+}
+
+/* ---- Partition: `sections` is master-detail, `scroll` is one page ---- */
+.form-shell {
+  display: grid;
+  grid-template-columns: minmax(180px, 22%) 1fr;
+  gap: 16px;
+  padding: 12px;
+}
+.form-shell .form-loose {
+  grid-column: 1 / -1;
+}
+.section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-right: 1px solid var(--border);
+  padding-right: 8px;
+}
+.section-tab {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-height: var(--hit);
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--fg);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.section-tab:hover {
+  background: var(--accent-soft);
+}
+.section-tab[aria-current="true"] {
+  background: var(--sel);
+  box-shadow: inset 2px 0 0 var(--sel-edge);
+}
+.form-page {
+  padding: 12px;
+}
+
+.node-heading {
+  margin: 12px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+/* ---- nodes ---- */
+.node {
+  padding: 4px 0;
+}
+.node.group,
+.node.repeat {
+  margin-left: var(--indent);
+  border-left: 1px solid var(--border);
+  padding-left: calc(var(--indent) / 2);
+}
+.node.group[data-occupancy="absent"] > .node,
+.node.repeat[data-occupancy="absent"] > .node {
+  display: none;
+}
+.field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  min-height: var(--row-h);
+}
+.field-label {
+  min-width: 12rem;
+  color: var(--muted);
+}
+.field-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.field-value.ghost {
+  color: var(--ghost);
+  font-style: italic;
+}
+.field-value.invalid {
+  color: var(--violation);
+}
+.raw-preview {
+  margin: 2px 0 2px var(--indent);
+  font-family: var(--mono);
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.description {
+  margin: 2px 0 2px var(--indent);
+  color: var(--faint);
+}
+.violation {
+  margin: 2px 0 2px var(--indent);
+  color: var(--violation);
+}
+.notice {
+  margin: 2px 0 2px var(--indent);
+  color: var(--notice);
+}
+
+.badge {
+  padding: 0 5px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  line-height: 16px;
+}
+.badge.required-marker {
+  color: var(--required);
+}
+.badge.deprecated {
+  color: var(--deprecated);
+  border: 1px solid var(--deprecated);
+}
+.badge.locked {
+  color: var(--locked);
+  border: 1px solid var(--locked);
+}
+.badge.unit {
+  color: var(--muted);
+}
+.badge.violation-count {
+  color: var(--violation);
+  border: 1px solid var(--violation);
+}
+
+/* Touch pointers get upstream's coarse row height without a second layout. */
+@media (pointer: coarse) {
+  :root {
+    --row-h: var(--hit);
+  }
+}

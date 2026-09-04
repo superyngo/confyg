@@ -1,0 +1,5 @@
+{
+  "name": "confyg",
+  "private": true,
+  "workspaces": ["web"]
+}

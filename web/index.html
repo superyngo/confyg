@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>confyg</title>
+  </head>
+  <body>
+    <div class="chrome">
+      <label>
+        <span data-i18n="form.action.open">Open</span>
+        <input id="open" type="file" accept=".toml,.json,.yaml,.yml" hidden />
+      </label>
+      <button id="save" type="button" data-i18n="form.action.save">Save</button>
+      <button id="schema" type="button" data-i18n="form.action.schema">Schema</button>
+      <span class="spacer"></span>
+      <button id="theme" type="button" data-i18n="form.action.theme">Theme</button>
+    </div>
+    <main id="form"></main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

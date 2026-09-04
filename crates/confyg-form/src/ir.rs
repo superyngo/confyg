@@ -10,7 +10,13 @@ use serde_json::Value;
 
 /// One node of the projected form.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+// `rename_all` renames the *variants*; the variants' own fields need `rename_all_fields`,
+// without which `rawPreview` and `itemTemplate` reach the host as snake_case.
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 pub enum FormNode {
     Field {
         path: Path,

@@ -1,0 +1,13 @@
+{
+  "form.action.open": "開啟",
+  "form.action.save": "儲存",
+  "form.action.schema": "Schema",
+  "form.action.theme": "主題",
+  "form.badge.deprecated": "已淘汰",
+  "form.badge.locked": "唯讀",
+  "form.cyclic.stopped": "此段 Schema 指回自身，表單在此停止展開。",
+  "form.group.off": "關閉",
+  "form.group.on": "開啟",
+  "form.presence.unset": "未設定",
+  "form.unknown.preserved": "Schema 未定義此鍵，內容原樣保留。"
+}

@@ -202,6 +202,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and silently documents it. Not fixable confyg-side — **Comment policy** forbids deleting the
   user's prose and the closed `Mutation` set has no whitespace operation. YAML and JSON are
   unaffected, and the test's YAML half already passes.
+- 2026-09-04 — Phase B, Task 17: the web host's renderer shell. `web/` is an npm workspace on
+  Vite and Vitest with `web/src/partition.ts` (presentation §5.1's closed **Partition** set —
+  sections are the root's depth-1 **Groups**, and fewer than three of them falls back to
+  `scroll`), `web/src/render.ts` (a recursive **Form IR** walk dispatching on `kind`; new code,
+  since confy's tree-editor `render.ts` and its `ViewRow` are a value/type row model per
+  ADR 0002), `web/src/tokens.css` (upstream's 20 OKLCH chrome roles, `--font`/`--mono` and the
+  density tokens inherited as-is; the data-type colours deliberately not ported; `--ghost`,
+  `--inherited`, `--violation`, `--notice`, `--locked`, `--required`, `--deprecated`, `--radius`
+  added), and `web/src/types.ts` as the transcription of the IR and `SetterSnapshot`.
+  `host-io.ts` and `i18n.ts` are ported down from confy to confyg's one host and the Chassis
+  catalog `i18n/{en,zh-TW}.json` (`form.*`); `boundary.ts` is the only channel to the core.
+  A fourth CI job typechecks, tests and builds the bundle. `--example try` gained a `json`
+  command so `web/src/render.test.ts` walks a snapshot the real core produced rather than a
+  hand-written IR.
 
 ### Fixed
 
@@ -214,4 +228,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `properties` order** is not, so it yields. `upstream.md` *Insertion legality* now states the
   real rule. Found by hand, not by the suite; see
   [`docs/debug/2026-09-04-phase-a-hands-on-findings.md`](docs/debug/2026-09-04-phase-a-hands-on-findings.md).
+- 2026-09-04 — `FormNode`'s variant fields now serialize as camelCase. `rename_all` renames
+  *variants* only, so `raw_preview`, `item_template`, `label_from` and `schema_ptr` crossed the
+  boundary in snake_case against the IR's documented contract; `rename_all_fields` fixes it.
+  Found by feeding a real snapshot to the new renderer, where `Unknown` rendered an empty
+  preview.
 

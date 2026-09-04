@@ -41,3 +41,16 @@ jobs:
       - uses: jetli/wasm-pack-action@v0.4.0
       - name: Build the WASM boundary
         run: wasm-pack build crates/confyg-ffi --target web
+
+  web:
+    # The renderer's Partition and shell tests, and the production bundle the e2e run loads.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run typecheck -w web
+      - run: npm test -w web
+      - run: npm run build -w web

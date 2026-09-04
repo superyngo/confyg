@@ -1,0 +1,13 @@
+{
+  "form.action.open": "Open",
+  "form.action.save": "Save",
+  "form.action.schema": "Schema",
+  "form.action.theme": "Theme",
+  "form.badge.deprecated": "deprecated",
+  "form.badge.locked": "locked",
+  "form.cyclic.stopped": "This part of the Schema refers back to itself; the form stops here.",
+  "form.group.off": "Turn off",
+  "form.group.on": "Turn on",
+  "form.presence.unset": "not set",
+  "form.unknown.preserved": "Not in the Schema — kept exactly as written."
+}

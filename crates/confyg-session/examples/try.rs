@@ -11,7 +11,7 @@
 //! an optional section, a bounded array and comments to preserve. Any Schema works.
 //!
 //! Commands: `set <path> <json>` · `unset <path>` · `add <path>` · `rm <path> <i>`
-//!           `on|off <path>` · `undo` · `redo` · `as toml|json|yaml` · `text` · `q`
+//!           `on|off <path>` · `undo` · `redo` · `as toml|json|yaml` · `text` · `json` · `q`
 //! Paths are dotted, with `[i]` for array indices: `servers[0].host`.
 
 use confy_core::model::document::DocFormat;
@@ -72,6 +72,12 @@ fn main() {
             "q" | "quit" => return,
             "text" => {
                 println!("{}", snap.text);
+                continue;
+            }
+            // The exact bytes the web host receives, so a renderer fixture is the real
+            // core's output rather than a hand-written guess.
+            "json" => {
+                println!("{}", serde_json::to_string_pretty(&snap).unwrap());
                 continue;
             }
             "set" => {

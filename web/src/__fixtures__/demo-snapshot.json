@@ -1,0 +1,462 @@
+{
+  "ir": {
+    "kind": "group",
+    "path": [],
+    "meta": {
+      "title": "",
+      "description": null,
+      "violations": [],
+      "locked": null,
+      "deprecated": false
+    },
+    "children": [
+      {
+        "kind": "field",
+        "path": [
+          {
+            "Key": "host"
+          }
+        ],
+        "widget": "text",
+        "intended": "text",
+        "presence": {
+          "kind": "set",
+          "literal": "\"0.0.0.0\""
+        },
+        "meta": {
+          "title": "Bind address",
+          "description": null,
+          "violations": [],
+          "locked": null,
+          "deprecated": false,
+          "default": "127.0.0.1",
+          "examples": [],
+          "required": true,
+          "readOnly": false,
+          "writeOnly": false,
+          "unit": null,
+          "constraints": [],
+          "raw": false
+        }
+      },
+      {
+        "kind": "field",
+        "path": [
+          {
+            "Key": "port"
+          }
+        ],
+        "widget": "slider",
+        "intended": "slider",
+        "presence": {
+          "kind": "invalid",
+          "literal": "99999",
+          "violations": [
+            {
+              "path": [
+                {
+                  "Key": "port"
+                }
+              ],
+              "pointer": "/port",
+              "keyword": "maximum",
+              "message": "99999 is greater than the maximum of 65535",
+              "category": "Value"
+            }
+          ]
+        },
+        "meta": {
+          "title": "Port",
+          "description": null,
+          "violations": [
+            {
+              "path": [
+                {
+                  "Key": "port"
+                }
+              ],
+              "pointer": "/port",
+              "keyword": "maximum",
+              "message": "99999 is greater than the maximum of 65535",
+              "category": "Value"
+            }
+          ],
+          "locked": null,
+          "deprecated": false,
+          "default": 8080,
+          "examples": [],
+          "required": false,
+          "readOnly": false,
+          "writeOnly": false,
+          "unit": "tcp",
+          "constraints": [
+            {
+              "kind": "minimum",
+              "value": 1.0,
+              "exclusive": false
+            },
+            {
+              "kind": "maximum",
+              "value": 65535.0,
+              "exclusive": false
+            }
+          ],
+          "raw": false
+        }
+      },
+      {
+        "kind": "field",
+        "path": [
+          {
+            "Key": "mode"
+          }
+        ],
+        "widget": "radio",
+        "intended": "radio",
+        "presence": {
+          "kind": "absent",
+          "default": "dev",
+          "remarked": null
+        },
+        "meta": {
+          "title": "mode",
+          "description": null,
+          "violations": [],
+          "locked": null,
+          "deprecated": false,
+          "default": "dev",
+          "examples": [],
+          "required": false,
+          "readOnly": false,
+          "writeOnly": false,
+          "unit": null,
+          "constraints": [],
+          "raw": false
+        }
+      },
+      {
+        "kind": "field",
+        "path": [
+          {
+            "Key": "cacheSize"
+          }
+        ],
+        "widget": "slider",
+        "intended": "slider",
+        "presence": {
+          "kind": "absent",
+          "default": null,
+          "remarked": null
+        },
+        "meta": {
+          "title": "cacheSize",
+          "description": null,
+          "violations": [],
+          "locked": null,
+          "deprecated": false,
+          "default": null,
+          "examples": [],
+          "required": false,
+          "readOnly": false,
+          "writeOnly": false,
+          "unit": "MiB",
+          "constraints": [
+            {
+              "kind": "minimum",
+              "value": 0.0,
+              "exclusive": false
+            },
+            {
+              "kind": "maximum",
+              "value": 4096.0,
+              "exclusive": false
+            }
+          ],
+          "raw": false
+        }
+      },
+      {
+        "kind": "field",
+        "path": [
+          {
+            "Key": "token"
+          }
+        ],
+        "widget": "masked",
+        "intended": "masked",
+        "presence": {
+          "kind": "absent",
+          "default": null,
+          "remarked": null
+        },
+        "meta": {
+          "title": "token",
+          "description": null,
+          "violations": [],
+          "locked": null,
+          "deprecated": false,
+          "default": null,
+          "examples": [],
+          "required": false,
+          "readOnly": false,
+          "writeOnly": true,
+          "unit": null,
+          "constraints": [],
+          "raw": false
+        }
+      },
+      {
+        "kind": "group",
+        "path": [
+          {
+            "Key": "tls"
+          }
+        ],
+        "meta": {
+          "title": "TLS",
+          "description": null,
+          "violations": [],
+          "locked": null,
+          "deprecated": false
+        },
+        "children": [
+          {
+            "kind": "field",
+            "path": [
+              {
+                "Key": "tls"
+              },
+              {
+                "Key": "cert"
+              }
+            ],
+            "widget": "text",
+            "intended": "text",
+            "presence": {
+              "kind": "absent",
+              "default": null,
+              "remarked": null
+            },
+            "meta": {
+              "title": "cert",
+              "description": null,
+              "violations": [],
+              "locked": null,
+              "deprecated": false,
+              "default": null,
+              "examples": [],
+              "required": false,
+              "readOnly": false,
+              "writeOnly": false,
+              "unit": null,
+              "constraints": [],
+              "raw": false
+            }
+          },
+          {
+            "kind": "field",
+            "path": [
+              {
+                "Key": "tls"
+              },
+              {
+                "Key": "key"
+              }
+            ],
+            "widget": "text",
+            "intended": "text",
+            "presence": {
+              "kind": "absent",
+              "default": null,
+              "remarked": null
+            },
+            "meta": {
+              "title": "key",
+              "description": null,
+              "violations": [],
+              "locked": null,
+              "deprecated": false,
+              "default": null,
+              "examples": [],
+              "required": false,
+              "readOnly": false,
+              "writeOnly": false,
+              "unit": null,
+              "constraints": [],
+              "raw": false
+            }
+          }
+        ],
+        "occupancy": "absent",
+        "toggle": {
+          "enabled": false
+        }
+      },
+      {
+        "kind": "repeat",
+        "path": [
+          {
+            "Key": "servers"
+          }
+        ],
+        "meta": {
+          "title": "servers",
+          "description": null,
+          "violations": [],
+          "locked": null,
+          "deprecated": false
+        },
+        "items": [
+          {
+            "kind": "group",
+            "path": [
+              {
+                "Key": "servers"
+              },
+              {
+                "Index": 0
+              }
+            ],
+            "meta": {
+              "title": "",
+              "description": null,
+              "violations": [],
+              "locked": null,
+              "deprecated": false
+            },
+            "children": [
+              {
+                "kind": "field",
+                "path": [
+                  {
+                    "Key": "servers"
+                  },
+                  {
+                    "Index": 0
+                  },
+                  {
+                    "Key": "host"
+                  }
+                ],
+                "widget": "text",
+                "intended": "text",
+                "presence": {
+                  "kind": "set",
+                  "literal": "\"a.example\""
+                },
+                "meta": {
+                  "title": "host",
+                  "description": null,
+                  "violations": [],
+                  "locked": null,
+                  "deprecated": false,
+                  "default": null,
+                  "examples": [],
+                  "required": true,
+                  "readOnly": false,
+                  "writeOnly": false,
+                  "unit": null,
+                  "constraints": [],
+                  "raw": false
+                }
+              },
+              {
+                "kind": "field",
+                "path": [
+                  {
+                    "Key": "servers"
+                  },
+                  {
+                    "Index": 0
+                  },
+                  {
+                    "Key": "weight"
+                  }
+                ],
+                "widget": "stepper",
+                "intended": "stepper",
+                "presence": {
+                  "kind": "set",
+                  "literal": "2"
+                },
+                "meta": {
+                  "title": "weight",
+                  "description": null,
+                  "violations": [],
+                  "locked": null,
+                  "deprecated": false,
+                  "default": null,
+                  "examples": [],
+                  "required": false,
+                  "readOnly": false,
+                  "writeOnly": false,
+                  "unit": null,
+                  "constraints": [
+                    {
+                      "kind": "minimum",
+                      "value": 1.0,
+                      "exclusive": false
+                    }
+                  ],
+                  "raw": false
+                }
+              }
+            ],
+            "occupancy": "populated",
+            "toggle": {
+              "enabled": true
+            }
+          }
+        ],
+        "occupancy": "populated",
+        "bounds": {
+          "min": null,
+          "max": 3
+        },
+        "itemTemplate": "#/properties/servers/items",
+        "labelFrom": "host"
+      },
+      {
+        "kind": "unknown",
+        "path": [
+          {
+            "Key": "colour"
+          }
+        ],
+        "rawPreview": "\"puce\""
+      }
+    ],
+    "occupancy": "populated",
+    "toggle": {
+      "enabled": true
+    }
+  },
+  "summary": {
+    "items": [
+      {
+        "path": [
+          {
+            "Key": "port"
+          }
+        ],
+        "title": "Port",
+        "keyword": "maximum",
+        "message": "99999 is greater than the maximum of 65535"
+      }
+    ],
+    "validation": {
+      "kind": "available"
+    }
+  },
+  "text": "# the address we bind to — keep this comment attached to host\nhost = \"0.0.0.0\"\n\n# deliberately out of range, so you can see an Invalid field\nport = 99999\n\n# a key the schema has never heard of\ncolour = \"puce\"\n\n[[servers]]\nhost = \"a.example\"\nweight = 2\n",
+  "notices": [
+    {
+      "code": "form.unknown.key",
+      "message": "`colour` is not described by the Schema; it is preserved as authored"
+    }
+  ],
+  "fetch": null,
+  "canUndo": false,
+  "canRedo": false
+}
+
