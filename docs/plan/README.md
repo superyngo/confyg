@@ -8,7 +8,7 @@ A plan shares its kebab title with the spec it derives from, so the pair matches
 
 ## In progress
 
-_None._
+- [2026-09-04-confyg-design.md](2026-09-04-confyg-design.md) - `Draft` - v0.1, 20 tasks
 
 ## Landed
 

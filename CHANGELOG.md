@@ -52,3 +52,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   masking degrades with a Notice rather than silently; the release tiers absorb the presentation
   work; verification gained a Host capability axis, ladder-terminal coverage, and
   Write-neutrality's property test; the Annotation open question is resolved.
+- 2026-09-04 — Added `docs/plan/2026-09-04-confyg-design.md`: the v0.1 implementation plan, 20
+  tasks across a Rust core phase (workspace and pin, Form IR types, Schema introspection,
+  Presentation vocabulary, Affordance and clamp, compilation, overlay, unknown sweep, ordinal
+  conversion, intent lowering, Templates, session dispatch, the D9 postcondition guard, the
+  Write-neutrality property test, the WASM boundary) and a web-host phase (renderer shell,
+  widget set, Repeat cards and summary and Form search, real-binary check). Every task is
+  test-first and ends with a commit; Tasks 9, 14, and 15 are ordered early because D7, D9, and
+  Write-neutrality are the failures that report success.
