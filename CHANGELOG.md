@@ -68,3 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   declares no Cargo features on `main`, so `default-features = false` is a forward-compatible
   no-op and the grep gate is what enforces ADR 0001; recorded the real import paths
   (`model::any_doc::AnyDocument`, `model::document::{ConfigDocument, DocFormat}`).
+- 2026-09-04 — Defined the Form IR types in `crates/confyg-form/src/ir.rs`: `FormNode`
+  (Field / Group / Repeat / Unknown / Cyclic), three-state `Presence`, `Occupancy`, the closed
+  twelve-member `Widget` vocabulary, `NodeMeta`, `FieldMeta`, `Bounds`, `GroupToggle`,
+  `TemplateRef`, `Locked`, `Constraint`, and `SchemaState` with its `SchemaCompileError`.
+  Serialization is externally tagged on `kind` and camelCase throughout, so `web/` and `insta`
+  read the same shape.
