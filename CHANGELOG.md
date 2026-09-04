@@ -172,3 +172,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that lands in the wrong container is otherwise invisible. `tests/postcondition.rs` runs every
   v0.1 intent and also asserts no generic placeholder key (`__elem__`, `placeholder`) reaches
   the bytes.
+- 2026-09-04 — Added `crates/confyg-session/tests/write_neutrality.rs` and a required
+  `write-neutrality` CI job: every v0.1 intent runs in three Doc formats against eleven
+  `x-confyg` Annotations applied to every property and four Host capability profiles, and every
+  run must produce byte-identical output plus an identical refusal log. Verified the property
+  bites by making a `Replace` fragment read `unit`: the suite fails naming the Annotation, the
+  profile, the format and the case (ADR 0004, verification item 6).

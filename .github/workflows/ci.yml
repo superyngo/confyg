@@ -17,3 +17,14 @@ jobs:
       - name: confy-core session must not be referenced
         run: |
           if rg -q 'confy_core::session' crates/; then echo "session module referenced"; exit 1; fi
+
+  write-neutrality:
+    # ADR 0004's invariant gets its own required job so the gate is visible: presentation input
+    # may never change a byte confyg writes.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Write-neutrality
+        run: cargo test -p confyg-session --test write_neutrality
