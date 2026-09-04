@@ -10,6 +10,8 @@ use confy_core::model::node::{Path, Seg};
 use confy_core::schema::types::Violation;
 use confyg_form::affordance::{Density, HostProfile};
 use confyg_form::compile::project;
+use confyg_form::ir::TemplateRef;
+use confyg_session::fragment::{fragment, Emission};
 use confyg_session::lower::{lower, Refused, SetterIntent};
 use serde_json::{json, Value};
 
@@ -31,7 +33,7 @@ fn apply_all(schema: &Value, src: &str, fmt: DocFormat, intents: &[SetterIntent]
     let mut doc = AnyDocument::from_str_as(src, fmt).expect("parse");
     for intent in intents {
         let ir = project(schema, Some(&doc), &host());
-        let muts = lower(intent, &ir.root, &doc).expect("host offered an ungated intent");
+        let muts = lower(intent, &ir.root, &doc, schema).expect("host offered an ungated intent");
         for m in muts {
             doc.apply(m).expect("mutation");
         }
@@ -42,7 +44,7 @@ fn apply_all(schema: &Value, src: &str, fmt: DocFormat, intents: &[SetterIntent]
 fn lower_err(schema: &Value, src: &str, fmt: DocFormat, intent: SetterIntent) -> Option<Refused> {
     let doc = AnyDocument::from_str_as(src, fmt).expect("parse");
     let ir = project(schema, Some(&doc), &host());
-    lower(&intent, &ir.root, &doc).err()
+    lower(&intent, &ir.root, &doc, schema).err()
 }
 
 fn violations_after(schema: &Value, src: &str, fmt: DocFormat) -> Vec<Violation> {
@@ -218,3 +220,118 @@ matrix!(
     Yaml: "host: a\n# about ca\nca: c\n"
         => "host: a\nport: 80\n# about ca\nca: c\n",
 );
+
+// ── Task 11: collections ────────────────────────────────────────────────────────────────────
+
+fn servers_schema() -> Value {
+    json!({"properties":{"servers":{"type":"array","maxItems":2,
+        "items":{"type":"object","properties":{"host":{"type":"string"}}}}}})
+}
+
+matrix!(
+    the_first_item_of_an_absent_collection_is_a_different_mutation_from_the_second,
+    |fmt, src, want| {
+        let s = servers_schema();
+        let add = [SetterIntent::AddRepeatItem {
+            path: key("servers"),
+        }];
+        let after_first = apply_all(&s, src, fmt, &add);
+        let after_second = apply_all(&s, &after_first, fmt, &add);
+        assert_eq!(
+            format!("{after_first}|{after_second}"),
+            want,
+            "{fmt:?}: absent-parent lowering, then D2's headerless insert at the collection Path"
+        );
+    },
+    Toml: "" => "[[servers]]\nhost = \"\"\n|[[servers]]\nhost = \"\"\n[[servers]]\nhost = \"\"\n",
+    Json: "{}\n" => "{ \"servers\": [{ \"host\": \"\" }] }\n|{ \"servers\": [{ \"host\": \"\" }, { \"host\": \"\" }] }\n",
+    Yaml: "" => "servers:\n  - host: \"\"\n|servers:\n  - host: \"\"\n  - host: \"\"\n",
+);
+
+matrix!(
+    add_is_not_offered_at_max_items_and_remove_not_below_min,
+    |fmt, src, _want| {
+        let s = json!({"properties":{"a":{"type":"array","maxItems":1,"minItems":1,
+                                          "items":{"type":"string"}}}});
+        assert!(
+            lower_err(
+                &s,
+                src,
+                fmt,
+                SetterIntent::AddRepeatItem { path: key("a") }
+            )
+            .is_some(),
+            "{fmt:?}: maxItems"
+        );
+        assert!(
+            lower_err(
+                &s,
+                src,
+                fmt,
+                SetterIntent::RemoveRepeatItem {
+                    path: key("a"),
+                    index: 0
+                }
+            )
+            .is_some(),
+            "{fmt:?}: minItems"
+        );
+    },
+    Toml: "a = [\"x\"]\n" => "",
+    Json: "{ \"a\": [\"x\"] }\n" => "",
+    Yaml: "a:\n  - x\n" => "",
+);
+
+matrix!(
+    toggling_an_optional_group_writes_its_template_and_removes_the_whole_section,
+    |fmt, src, want| {
+        let s = json!({"properties":{"host":{"type":"string"},"tls":{"type":"object",
+            "properties":{"on":{"type":"boolean","default":false},"ca":{"type":"string"}}}}});
+        let on = apply_all(
+            &s,
+            src,
+            fmt,
+            &[SetterIntent::ToggleGroup {
+                path: key("tls"),
+                enable: true,
+            }],
+        );
+        let off = apply_all(
+            &s,
+            &on,
+            fmt,
+            &[SetterIntent::ToggleGroup {
+                path: key("tls"),
+                enable: false,
+            }],
+        );
+        assert_eq!(
+            format!("{on}|{off}"),
+            want,
+            "{fmt:?}: the default-valued `on` is never written (Minimal write)"
+        );
+    },
+    Toml: "host = \"a\"\n" => "host = \"a\"\n[tls]\nca = \"\"\n|host = \"a\"\n",
+    Json: "{ \"host\": \"a\" }\n"
+        => "{ \"host\": \"a\", \"tls\": { \"ca\": \"\" } }\n|{ \"host\": \"a\" }\n",
+    Yaml: "host: a\n" => "host: a\ntls:\n  ca: \"\"\n|host: a\n",
+);
+
+#[test]
+fn a_header_fragment_is_never_emitted_at_the_collection_path() {
+    // Guards the D2 asymmetry: assert the Emission choice, not the engine's tolerance.
+    let f = fragment(
+        &servers_schema(),
+        &TemplateRef("#/properties/servers/items".into()),
+        DocFormat::Toml,
+        Emission::Headerless,
+    );
+    assert!(!f.starts_with("[["), "got {f:?}");
+    let h = fragment(
+        &servers_schema(),
+        &TemplateRef("#/properties/servers/items".into()),
+        DocFormat::Toml,
+        Emission::HeaderBearing,
+    );
+    assert!(h.starts_with("[[servers]]"), "got {h:?}");
+}

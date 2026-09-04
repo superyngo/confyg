@@ -11,11 +11,12 @@
 use confy_core::model::any_doc::AnyDocument;
 use confy_core::model::document::{ConfigDocument, Mutation, OnCollision, Target};
 use confy_core::model::node::{Node, NodeKind, Path, Seg};
-use confyg_form::ir::{FormNode, Presence};
+use confyg_form::ir::{FormNode, Occupancy, Presence, TemplateRef};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::ordinal::schema_slot;
+use crate::fragment::{fragment, Emission};
+use crate::ordinal::{child_ordinal, schema_slot};
 
 /// Everything a host can ask the session to write. Extended, never renamed, by later tasks.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,6 +24,9 @@ use crate::ordinal::schema_slot;
 pub enum SetterIntent {
     SetValue { path: Path, value: Value },
     Unset { path: Path },
+    AddRepeatItem { path: Path },
+    RemoveRepeatItem { path: Path, index: usize },
+    ToggleGroup { path: Path, enable: bool },
 }
 
 /// An intent the host should not have offered. Carries the reason so the bug is nameable.
@@ -39,15 +43,143 @@ impl Refused {
     }
 }
 
+/// `schema` is needed because a template fragment is rendered from the Schema on demand — the IR
+/// carries a `TemplateRef` pointer rather than inlined text (design §3).
 pub fn lower(
     intent: &SetterIntent,
     ir: &FormNode,
     doc: &AnyDocument,
+    schema: &Value,
 ) -> Result<Vec<Mutation>, Refused> {
     match intent {
         SetterIntent::SetValue { path, value } => set_value(path, value, ir, doc),
         SetterIntent::Unset { path } => unset(path, ir, doc),
+        SetterIntent::AddRepeatItem { path } => add_repeat_item(path, ir, doc, schema),
+        SetterIntent::RemoveRepeatItem { path, index } => remove_repeat_item(path, index, ir),
+        SetterIntent::ToggleGroup { path, enable } => toggle_group(path, *enable, ir, doc, schema),
     }
+}
+
+/// `AddRepeatItem` chooses its lowering on the collection's **Occupancy**, which is the D2
+/// asymmetry: an absent collection takes a header-bearing fragment into the *parent*, an
+/// existing one takes a headerless fragment addressed at its own **Path**.
+fn add_repeat_item(
+    path: &Path,
+    ir: &FormNode,
+    doc: &AnyDocument,
+    schema: &Value,
+) -> Result<Vec<Mutation>, Refused> {
+    let node = find(ir, path).ok_or_else(|| Refused::new("no node at that path"))?;
+    let FormNode::Repeat {
+        items,
+        bounds,
+        occupancy,
+        item_template,
+        ..
+    } = node
+    else {
+        return Err(Refused::new("that path is not a Repeat group"));
+    };
+    if bounds.max.is_some_and(|max| items.len() >= max) {
+        return Err(Refused::new("Add is not offered at maxItems"));
+    }
+    Ok(vec![grow(
+        doc,
+        ir,
+        schema,
+        path,
+        item_template,
+        *occupancy == Occupancy::Absent,
+        items.len(),
+    )?])
+}
+
+fn remove_repeat_item(path: &Path, index: &usize, ir: &FormNode) -> Result<Vec<Mutation>, Refused> {
+    let node = find(ir, path).ok_or_else(|| Refused::new("no node at that path"))?;
+    let FormNode::Repeat { items, bounds, .. } = node else {
+        return Err(Refused::new("that path is not a Repeat group"));
+    };
+    if *index >= items.len() {
+        return Err(Refused::new("no item at that index"));
+    }
+    if bounds.min.is_some_and(|min| items.len() <= min) {
+        return Err(Refused::new("Remove is not offered at minItems"));
+    }
+    let mut item = path.clone();
+    item.push(Seg::Index(*index));
+    Ok(vec![Mutation::Delete { path: item }])
+}
+
+/// Enabling an optional **Group** writes its template through the same two lowerings; disabling
+/// removes the whole section, because a Group the user turned off is written by absence.
+fn toggle_group(
+    path: &Path,
+    enable: bool,
+    ir: &FormNode,
+    doc: &AnyDocument,
+    schema: &Value,
+) -> Result<Vec<Mutation>, Refused> {
+    let node = find(ir, path).ok_or_else(|| Refused::new("no node at that path"))?;
+    let FormNode::Group { occupancy, .. } = node else {
+        return Err(Refused::new("that path is not a Group"));
+    };
+    let absent = *occupancy == Occupancy::Absent;
+    match (enable, absent) {
+        (true, false) | (false, true) => Ok(Vec::new()),
+        (false, false) => Ok(vec![Mutation::Delete { path: path.clone() }]),
+        (true, true) => {
+            let template = TemplateRef(schema_pointer(path));
+            Ok(vec![grow(doc, ir, schema, path, &template, true, 0)?])
+        }
+    }
+}
+
+/// The one `Insert` both collection intents share: header-bearing into the parent when the
+/// collection is absent, headerless at the collection's own Path when it is not.
+fn grow(
+    doc: &AnyDocument,
+    ir: &FormNode,
+    schema: &Value,
+    path: &Path,
+    template: &TemplateRef,
+    absent: bool,
+    len: usize,
+) -> Result<Mutation, Refused> {
+    let key = leaf_key(path).ok_or_else(|| Refused::new("a collection needs a key"))?;
+    if absent {
+        let mut parent = path.clone();
+        parent.pop();
+        let order = sibling_order(ir, &parent);
+        let index = schema_slot(doc, &parent, &key, &order);
+        Ok(Mutation::Insert {
+            target: Target { parent, index },
+            fragment: fragment(schema, template, doc.format(), Emission::HeaderBearing),
+            on_collision: OnCollision::Cancel,
+            suggested_key: Some(key),
+        })
+    } else {
+        Ok(Mutation::Insert {
+            target: Target {
+                parent: path.clone(),
+                index: child_ordinal(doc, path, len),
+            },
+            fragment: fragment(schema, template, doc.format(), Emission::Headerless),
+            on_collision: OnCollision::Cancel,
+            suggested_key: Some(key),
+        })
+    }
+}
+
+/// The Schema pointer for a Document path: `tls.ca` → `#/properties/tls/properties/ca`.
+fn schema_pointer(path: &Path) -> String {
+    let mut out = String::from("#");
+    for seg in path {
+        match seg {
+            Seg::Key(k) => out.push_str(&format!("/properties/{k}")),
+            Seg::Index(_) => out.push_str("/items"),
+        }
+    }
+    out
 }
 
 fn set_value(

@@ -138,3 +138,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sibling lands above that sibling's leading comment block, not between the comment and the key
   it describes. `tests/roundtrip.rs` runs every case, comment-interleaved included, in all three
   Doc formats (verification item 2).
+- 2026-09-04 — Added `crates/confyg-session/src/fragment.rs` and the collection intents
+  `AddRepeatItem`, `RemoveRepeatItem` and `ToggleGroup`. Every fragment confyg writes is
+  rendered from the Schema in one place, because `Insert` adapts raw text instead of rejecting
+  it. `Emission::{Headerless, HeaderBearing}` is the D2 asymmetry: an absent collection takes a
+  header-bearing fragment into its parent at the Schema slot, an existing one takes a headerless
+  fragment addressed at its own Path so the engine synthesizes the header. Add is gated on
+  `maxItems`, Remove on `minItems`, and a template emits only members without a `default`, so
+  Minimal write holds for generated text too. `lower` now also takes the Schema, since the IR
+  carries a `TemplateRef` pointer rather than inlined text.
