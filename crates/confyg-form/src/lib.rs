@@ -3,6 +3,7 @@
 //! No I/O and no state: every entry point is a function over
 //! `(&serde_json::Value, ...)`. `confy_core::session` is never referenced.
 
+pub mod affordance;
 pub mod facts;
 pub mod ir;
 pub mod notice;

@@ -86,3 +86,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `profile_hint` for the root-only Profile hint. An unknown or wrongly-typed member is a
   `Notice` and never costs the members beside it (ADR 0005); `profile` is not a member and does
   not warn.
+- 2026-09-04 — Added `crates/confyg-form/src/affordance.rs`: `derive` implements presentation
+  §3's precedence (`const`/`readOnly` → display-only, Raw literal fallback → raw text, the
+  menu-family thresholds 4/12, `writeOnly` → masked, then the primitive control), `ladder`
+  implements presentation §4's table with every chain terminating in a universal control, and
+  `resolve` is derive → override → clamp against `HostProfile`. A clamp substitutes but keeps
+  `intended` and emits a Notice, so `filterable-menu` legitimately renders as `menu` in v0.1 and
+  an unmaskable `writeOnly` value says so rather than silently revealing itself.
