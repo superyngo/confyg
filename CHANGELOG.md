@@ -103,3 +103,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   required-hoisting. `SchemaState.validatable` records the `Validator::new` failure so an
   uncompilable `pattern` costs the document its validation, not its form. Snapshots compile the
   checked-in `eslintrc.json` fixture on two Host capability profiles.
+- 2026-09-04 — Added `crates/confyg-form/src/overlay.rs` and turned `compile` into
+  `project(schema, doc, host)`: design §4 step 6 assigns three-state Presence (an unwritten
+  default stays Absent, a node with its own Violations is Invalid and keeps the literal as
+  authored), distinguishes `Occupancy::Empty` from `Absent`, marks a YAML alias / merge-key node
+  `locked`, projects one Repeat item per Document entry, and attaches Violations by exact Path —
+  letting `PointerMap::resolve`'s upward walk put container and `required` failures on the
+  container, and an unresolvable pointer on the root. A snapshot asserts that the same logical
+  document in TOML, JSON and YAML projects one identical outline (verification item 1).

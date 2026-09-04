@@ -4,93 +4,93 @@ expression: out
 ---
 <root>: group Absent
   ecmaFeatures: group Absent
-    ecmaFeatures.arrowFunctions: field Tristate
-    ecmaFeatures.binaryLiterals: field Tristate
-    ecmaFeatures.blockBindings: field Tristate
-    ecmaFeatures.classes: field Tristate
-    ecmaFeatures.defaultParams: field Tristate
-    ecmaFeatures.destructuring: field Tristate
-    ecmaFeatures.experimentalObjectRestSpread: field Tristate
-    ecmaFeatures.forOf: field Tristate
-    ecmaFeatures.generators: field Tristate
-    ecmaFeatures.globalReturn: field Tristate
-    ecmaFeatures.impliedStrict: field Tristate
-    ecmaFeatures.jsx: field Tristate
-    ecmaFeatures.modules: field Tristate
-    ecmaFeatures.objectLiteralComputedProperties: field Tristate
-    ecmaFeatures.objectLiteralDuplicateProperties: field Tristate
-    ecmaFeatures.objectLiteralShorthandMethods: field Tristate
-    ecmaFeatures.objectLiteralShorthandProperties: field Tristate
-    ecmaFeatures.octalLiterals: field Tristate
-    ecmaFeatures.regexUFlag: field Tristate
-    ecmaFeatures.regexYFlag: field Tristate
-    ecmaFeatures.restParams: field Tristate
-    ecmaFeatures.spread: field Tristate
-    ecmaFeatures.superInFunctions: field Tristate
-    ecmaFeatures.templateStrings: field Tristate
-    ecmaFeatures.unicodeCodePointEscapes: field Tristate
+    ecmaFeatures.arrowFunctions: field Tristate absent
+    ecmaFeatures.binaryLiterals: field Tristate absent
+    ecmaFeatures.blockBindings: field Tristate absent
+    ecmaFeatures.classes: field Tristate absent
+    ecmaFeatures.defaultParams: field Tristate absent
+    ecmaFeatures.destructuring: field Tristate absent
+    ecmaFeatures.experimentalObjectRestSpread: field Tristate absent
+    ecmaFeatures.forOf: field Tristate absent
+    ecmaFeatures.generators: field Tristate absent
+    ecmaFeatures.globalReturn: field Tristate absent
+    ecmaFeatures.impliedStrict: field Tristate absent
+    ecmaFeatures.jsx: field Tristate absent
+    ecmaFeatures.modules: field Tristate absent
+    ecmaFeatures.objectLiteralComputedProperties: field Tristate absent
+    ecmaFeatures.objectLiteralDuplicateProperties: field Tristate absent
+    ecmaFeatures.objectLiteralShorthandMethods: field Tristate absent
+    ecmaFeatures.objectLiteralShorthandProperties: field Tristate absent
+    ecmaFeatures.octalLiterals: field Tristate absent
+    ecmaFeatures.regexUFlag: field Tristate absent
+    ecmaFeatures.regexYFlag: field Tristate absent
+    ecmaFeatures.restParams: field Tristate absent
+    ecmaFeatures.spread: field Tristate absent
+    ecmaFeatures.superInFunctions: field Tristate absent
+    ecmaFeatures.templateStrings: field Tristate absent
+    ecmaFeatures.unicodeCodePointEscapes: field Tristate absent
   env: group Absent
-    env.amd: field Tristate
-    env.applescript: field Tristate
-    env.atomtest: field Tristate
-    env.browser: field Tristate
-    env.commonjs: field Tristate
-    env.shared-node-browser: field Tristate
-    env.embertest: field Tristate
-    env.es6: field Tristate
-    env.greasemonkey: field Tristate
-    env.jasmine: field Tristate
-    env.jest: field Tristate
-    env.jquery: field Tristate
-    env.meteor: field Tristate
-    env.mocha: field Tristate
-    env.mongo: field Tristate
-    env.nashorn: field Tristate
-    env.node: field Tristate
-    env.phantomjs: field Tristate
-    env.prototypejs: field Tristate
-    env.protractor: field Tristate
-    env.qunit: field Tristate
-    env.serviceworker: field Tristate
-    env.shelljs: field Tristate
-    env.webextensions: field Tristate
-    env.worker: field Tristate
+    env.amd: field Tristate absent
+    env.applescript: field Tristate absent
+    env.atomtest: field Tristate absent
+    env.browser: field Tristate absent
+    env.commonjs: field Tristate absent
+    env.shared-node-browser: field Tristate absent
+    env.embertest: field Tristate absent
+    env.es6: field Tristate absent
+    env.greasemonkey: field Tristate absent
+    env.jasmine: field Tristate absent
+    env.jest: field Tristate absent
+    env.jquery: field Tristate absent
+    env.meteor: field Tristate absent
+    env.mocha: field Tristate absent
+    env.mongo: field Tristate absent
+    env.nashorn: field Tristate absent
+    env.node: field Tristate absent
+    env.phantomjs: field Tristate absent
+    env.prototypejs: field Tristate absent
+    env.protractor: field Tristate absent
+    env.qunit: field Tristate absent
+    env.serviceworker: field Tristate absent
+    env.shelljs: field Tristate absent
+    env.webextensions: field Tristate absent
+    env.worker: field Tristate absent
   extends: unknown
   globals: unknown
-  noInlineConfig: field Tristate
-  reportUnusedDisableDirectives: field Tristate
-  parser: field Text
+  noInlineConfig: field Tristate absent
+  reportUnusedDisableDirectives: field Tristate absent
+  parser: field Text absent
   parserOptions: group Absent
     parserOptions.ecmaFeatures: group Absent
-      parserOptions.ecmaFeatures.arrowFunctions: field Tristate
-      parserOptions.ecmaFeatures.binaryLiterals: field Tristate
-      parserOptions.ecmaFeatures.blockBindings: field Tristate
-      parserOptions.ecmaFeatures.classes: field Tristate
-      parserOptions.ecmaFeatures.defaultParams: field Tristate
-      parserOptions.ecmaFeatures.destructuring: field Tristate
-      parserOptions.ecmaFeatures.experimentalObjectRestSpread: field Tristate
-      parserOptions.ecmaFeatures.forOf: field Tristate
-      parserOptions.ecmaFeatures.generators: field Tristate
-      parserOptions.ecmaFeatures.globalReturn: field Tristate
-      parserOptions.ecmaFeatures.impliedStrict: field Tristate
-      parserOptions.ecmaFeatures.jsx: field Tristate
-      parserOptions.ecmaFeatures.modules: field Tristate
-      parserOptions.ecmaFeatures.objectLiteralComputedProperties: field Tristate
-      parserOptions.ecmaFeatures.objectLiteralDuplicateProperties: field Tristate
-      parserOptions.ecmaFeatures.objectLiteralShorthandMethods: field Tristate
-      parserOptions.ecmaFeatures.objectLiteralShorthandProperties: field Tristate
-      parserOptions.ecmaFeatures.octalLiterals: field Tristate
-      parserOptions.ecmaFeatures.regexUFlag: field Tristate
-      parserOptions.ecmaFeatures.regexYFlag: field Tristate
-      parserOptions.ecmaFeatures.restParams: field Tristate
-      parserOptions.ecmaFeatures.spread: field Tristate
-      parserOptions.ecmaFeatures.superInFunctions: field Tristate
-      parserOptions.ecmaFeatures.templateStrings: field Tristate
-      parserOptions.ecmaFeatures.unicodeCodePointEscapes: field Tristate
-    parserOptions.ecmaVersion: field Menu (intended FilterableMenu)
-    parserOptions.sourceType: field Radio
-  plugins: repeat min=None max=None
-  root: field Tristate
+      parserOptions.ecmaFeatures.arrowFunctions: field Tristate absent
+      parserOptions.ecmaFeatures.binaryLiterals: field Tristate absent
+      parserOptions.ecmaFeatures.blockBindings: field Tristate absent
+      parserOptions.ecmaFeatures.classes: field Tristate absent
+      parserOptions.ecmaFeatures.defaultParams: field Tristate absent
+      parserOptions.ecmaFeatures.destructuring: field Tristate absent
+      parserOptions.ecmaFeatures.experimentalObjectRestSpread: field Tristate absent
+      parserOptions.ecmaFeatures.forOf: field Tristate absent
+      parserOptions.ecmaFeatures.generators: field Tristate absent
+      parserOptions.ecmaFeatures.globalReturn: field Tristate absent
+      parserOptions.ecmaFeatures.impliedStrict: field Tristate absent
+      parserOptions.ecmaFeatures.jsx: field Tristate absent
+      parserOptions.ecmaFeatures.modules: field Tristate absent
+      parserOptions.ecmaFeatures.objectLiteralComputedProperties: field Tristate absent
+      parserOptions.ecmaFeatures.objectLiteralDuplicateProperties: field Tristate absent
+      parserOptions.ecmaFeatures.objectLiteralShorthandMethods: field Tristate absent
+      parserOptions.ecmaFeatures.objectLiteralShorthandProperties: field Tristate absent
+      parserOptions.ecmaFeatures.octalLiterals: field Tristate absent
+      parserOptions.ecmaFeatures.regexUFlag: field Tristate absent
+      parserOptions.ecmaFeatures.regexYFlag: field Tristate absent
+      parserOptions.ecmaFeatures.restParams: field Tristate absent
+      parserOptions.ecmaFeatures.spread: field Tristate absent
+      parserOptions.ecmaFeatures.superInFunctions: field Tristate absent
+      parserOptions.ecmaFeatures.templateStrings: field Tristate absent
+      parserOptions.ecmaFeatures.unicodeCodePointEscapes: field Tristate absent
+    parserOptions.ecmaVersion: field Menu (intended FilterableMenu) absent
+    parserOptions.sourceType: field Radio absent
+  plugins: repeat Absent min=None max=None
+  root: field Tristate absent
   ignorePatterns: unknown
   rules: group Absent
     rules.comma-dangle: unknown
@@ -130,4 +130,4 @@ expression: out
     rules.valid-jsdoc: unknown
     rules.valid-typeof: unknown
   settings: group Absent
-  overrides: repeat min=None max=None
+  overrides: repeat Absent min=None max=None

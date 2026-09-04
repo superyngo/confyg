@@ -1,6 +1,6 @@
-//! Design §4 steps 1–5: resolve, merge, classify, order.
+//! Design §4 steps 1–6: resolve, merge, classify, order, overlay.
 //!
-//! Document overlay is `overlay.rs`; this module produces the all-**Absent** tree. It needs no
+//! `compile` is `project(schema, None, host)`: the all-**Absent** tree. Neither needs a
 //! validator, so a Schema that cannot compile for validation still projects a complete form.
 
 use serde_json::{Map, Value};
@@ -10,8 +10,10 @@ use crate::constraint;
 use crate::facts::{self, AdditionalProperties, SchemaFacts};
 use crate::ir::*;
 use crate::notice::Notice;
+use crate::overlay::DocView;
 use crate::vocab::{self, Presentation};
 
+use confy_core::model::any_doc::AnyDocument;
 use confy_core::model::node::{Path, Seg};
 
 /// A compiled form plus the document-level facts a host needs to frame it.
@@ -24,8 +26,7 @@ pub struct Compiled {
 
 /// The last **Path** segment's key, when the node has one. Hosts and tests both walk by key.
 pub fn key_of(node: &FormNode) -> Option<&str> {
-    let path = path_of(node);
-    match path.last() {
+    match path_of(node).last() {
         Some(Seg::Key(k)) => Some(k),
         _ => None,
     }
@@ -41,11 +42,18 @@ pub fn path_of(node: &FormNode) -> &Path {
     }
 }
 
-/// The all-**Absent** tree: `project(schema, None, host)` in design §4's terms.
+/// The all-**Absent** tree.
 pub fn compile(schema: &Value, host: &HostProfile) -> Compiled {
+    project(schema, None, host)
+}
+
+/// The whole of design §4: compile the Schema, then overlay the Document if there is one.
+pub fn project(schema: &Value, doc: Option<&AnyDocument>, host: &HostProfile) -> Compiled {
+    let view = doc.map(|d| DocView::new(d, schema));
     let mut ctx = Ctx {
         root: schema,
         host,
+        doc: view.as_ref(),
         notices: Vec::new(),
         visited: Vec::new(),
     };
@@ -68,11 +76,7 @@ pub fn validatable(schema: &Value) -> Result<(), SchemaCompileError> {
         Err(e) => {
             let pointer = e.schema_path.to_string();
             Err(SchemaCompileError {
-                keyword: pointer
-                    .rsplit('/')
-                    .next()
-                    .unwrap_or_default()
-                    .to_owned(),
+                keyword: pointer.rsplit('/').next().unwrap_or_default().to_owned(),
                 pointer,
                 message: e.to_string(),
             })
@@ -83,6 +87,7 @@ pub fn validatable(schema: &Value) -> Result<(), SchemaCompileError> {
 struct Ctx<'a> {
     root: &'a Value,
     host: &'a HostProfile,
+    doc: Option<&'a DocView>,
     notices: Vec<Notice>,
     /// `$ref` pointers on the current path. A pointer already here is a cycle (design §4 step 1).
     visited: Vec<String>,
@@ -112,7 +117,13 @@ impl Ctx<'_> {
         self.classify(&merged, &f, &presentation, ptr, path, key, required)
     }
 
-    fn follow(&mut self, reference: &str, path: Path, key: Option<&str>, required: bool) -> FormNode {
+    fn follow(
+        &mut self,
+        reference: &str,
+        path: Path,
+        key: Option<&str>,
+        required: bool,
+    ) -> FormNode {
         if !reference.starts_with('#') {
             self.notices.push(Notice::new(
                 "form.compile.external-ref",
@@ -178,14 +189,14 @@ impl Ctx<'_> {
                     Some(existing) if existing == v => {}
                     Some(existing) => {
                         let narrowed = narrowest(k, existing, v);
-                        if narrowed.is_none() {
-                            self.notices.push(Notice::new(
+                        match narrowed {
+                            Some(n) => {
+                                out.insert(k.clone(), n);
+                            }
+                            None => self.notices.push(Notice::new(
                                 "form.compile.allof-conflict",
                                 format!("`{ptr}` merges conflicting `{k}`; kept the first"),
-                            ));
-                        }
-                        if let Some(n) = narrowed {
-                            out.insert(k.clone(), n);
+                            )),
                         }
                     }
                 }
@@ -247,35 +258,51 @@ impl Ctx<'_> {
             // Step 5: Schema order, overridable by `x-confyg.order`, with `demoted` sinking to
             // the end. Required Fields are deliberately not hoisted.
             children.sort_by_key(|(order, demoted, _)| (*demoted, *order));
+            let occupancy = self.occupancy(&path);
             return FormNode::Group {
+                meta: self.node_meta(f, p, key, &path),
                 path,
-                meta: node_meta(f, p, key),
                 children: children.into_iter().map(|(_, _, n)| n).collect(),
-                occupancy: Occupancy::Absent,
-                toggle: (!required).then_some(GroupToggle { enabled: false }),
+                occupancy,
+                toggle: (!required).then_some(GroupToggle {
+                    enabled: occupancy != Occupancy::Absent,
+                }),
             };
         }
 
         let is_array = f.ty.as_ref().is_some_and(|t| t.has("array"))
             || (merged.get("items").is_some() && f.ty.is_none());
         if is_array {
-            let item_ptr = TemplateRef(format!("{ptr}/items"));
-            let items_schema = merged.get("items").cloned().unwrap_or(Value::Object(Map::new()));
+            let items_schema = merged
+                .get("items")
+                .cloned()
+                .unwrap_or(Value::Object(Map::new()));
+            let item_ptr = format!("{ptr}/items");
+            // Step 6 for a collection: one projected item per Document entry.
+            let mut items = Vec::new();
+            for index in 0..self.doc.map(|d| d.len_at(&path)).unwrap_or(0) {
+                let mut item_path = path.clone();
+                item_path.push(Seg::Index(index));
+                items.push(self.build(&items_schema, item_ptr.clone(), item_path, None, false));
+            }
             return FormNode::Repeat {
-                path,
-                meta: node_meta(f, p, key),
-                items: Vec::new(),
-                occupancy: Occupancy::Absent,
+                meta: self.node_meta(f, p, key, &path),
+                occupancy: self.occupancy(&path),
+                items,
                 bounds: Bounds {
                     min: f.len.min,
                     max: f.len.max,
                 },
-                label_from: p.label_from.clone().or_else(|| derive_label_from(&items_schema)),
-                item_template: item_ptr,
+                label_from: p
+                    .label_from
+                    .clone()
+                    .or_else(|| derive_label_from(&items_schema)),
+                item_template: TemplateRef(item_ptr),
+                path,
             };
         }
 
-        // A `additionalProperties` / `patternProperties` *schema* with no `properties` is a Map
+        // An `additionalProperties` / `patternProperties` *schema* with no `properties` is a Map
         // group, which is v0.2.
         if matches!(f.additional, AdditionalProperties::Schema(_))
             || merged.get("patternProperties").is_some()
@@ -285,27 +312,27 @@ impl Ctx<'_> {
             return unknown(merged, path);
         }
         if f.ty.as_ref().is_some_and(|t| t.has("object")) {
+            let occupancy = self.occupancy(&path);
             return FormNode::Group {
+                meta: self.node_meta(f, p, key, &path),
                 path,
-                meta: node_meta(f, p, key),
                 children: Vec::new(),
-                occupancy: Occupancy::Absent,
-                toggle: (!required).then_some(GroupToggle { enabled: false }),
+                occupancy,
+                toggle: (!required).then_some(GroupToggle {
+                    enabled: occupancy != Occupancy::Absent,
+                }),
             };
         }
 
-        let (widget, intended, notices) = affordance::resolve(f, p, false, self.host);
+        let raw_fallback = self.doc.is_some_and(|d| d.raw_fallback(&path));
+        let (widget, intended, notices) = affordance::resolve(f, p, raw_fallback, self.host);
         self.notices.extend(notices);
         FormNode::Field {
-            path,
             widget,
             intended,
-            presence: Presence::Absent {
-                default: f.default.clone(),
-                remarked: None,
-            },
+            presence: self.presence(f, &path),
             meta: FieldMeta {
-                node: node_meta(f, p, key),
+                node: self.node_meta(f, p, key, &path),
                 default: f.default.clone(),
                 examples: f.examples.clone(),
                 required,
@@ -313,8 +340,65 @@ impl Ctx<'_> {
                 write_only: f.write_only,
                 unit: p.unit.clone(),
                 constraints: constraint::extract(f),
-                raw: false,
+                raw: raw_fallback,
             },
+            path,
+        }
+    }
+
+    /// **Presence**: `Absent` with the Schema's default when the key is unwritten, `Invalid` when
+    /// the node has its own Violations or its literal is not editable as its declared type, and
+    /// `Set` otherwise.
+    fn presence(&self, f: &SchemaFacts, path: &Path) -> Presence {
+        let Some(doc) = self.doc else {
+            return Presence::Absent {
+                default: f.default.clone(),
+                remarked: None,
+            };
+        };
+        match doc.literal(path) {
+            None => Presence::Absent {
+                default: f.default.clone(),
+                remarked: None,
+            },
+            Some(literal) => {
+                let violations = doc.violations_at(path);
+                if violations.is_empty() {
+                    Presence::Set { literal }
+                } else {
+                    Presence::Invalid {
+                        literal,
+                        violations,
+                    }
+                }
+            }
+        }
+    }
+
+    fn occupancy(&self, path: &Path) -> Occupancy {
+        self.doc
+            .map(|d| d.occupancy(path))
+            .unwrap_or(Occupancy::Absent)
+    }
+
+    fn node_meta(
+        &self,
+        f: &SchemaFacts,
+        p: &Presentation,
+        key: Option<&str>,
+        path: &Path,
+    ) -> NodeMeta {
+        NodeMeta {
+            title: p
+                .label
+                .clone()
+                .or_else(|| f.title.clone())
+                .or_else(|| key.map(str::to_owned))
+                .unwrap_or_default(),
+            description: p.help.clone().or_else(|| f.description.clone()),
+            violations: self.doc.map(|d| d.violations_at(path)).unwrap_or_default(),
+            locked: self.doc.and_then(|d| d.locked(path)),
+            deprecated: f.deprecated,
         }
     }
 }
@@ -323,21 +407,6 @@ fn unknown(merged: &Value, path: Path) -> FormNode {
     FormNode::Unknown {
         path,
         raw_preview: merged.to_string(),
-    }
-}
-
-fn node_meta(f: &SchemaFacts, p: &Presentation, key: Option<&str>) -> NodeMeta {
-    NodeMeta {
-        title: p
-            .label
-            .clone()
-            .or_else(|| f.title.clone())
-            .or_else(|| key.map(str::to_owned))
-            .unwrap_or_default(),
-        description: p.help.clone().or_else(|| f.description.clone()),
-        violations: Vec::new(),
-        locked: None,
-        deprecated: f.deprecated,
     }
 }
 

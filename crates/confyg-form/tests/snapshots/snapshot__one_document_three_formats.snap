@@ -1,0 +1,12 @@
+---
+source: crates/confyg-form/tests/snapshot.rs
+expression: Toml
+---
+<root>: group Populated
+  host: field Text set
+  port: field Slider set
+  servers: repeat Populated min=None max=None
+    servers.0: group Populated
+      servers.0.name: field Text set
+  tls: group Populated
+    tls.on: field Tristate set

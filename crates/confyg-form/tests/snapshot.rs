@@ -5,8 +5,10 @@
 //! for this fixture is tens of thousands of lines, which no reviewer reads.
 
 use confyg_form::affordance::{Density, HostProfile};
-use confyg_form::compile::{compile, path_of};
-use confyg_form::ir::FormNode;
+use confyg_form::compile::{compile, path_of, project};
+use confyg_form::ir::{FormNode, Presence};
+use confy_core::model::any_doc::AnyDocument;
+use confy_core::model::document::DocFormat;
 use confy_core::model::node::Seg;
 
 fn desktop() -> HostProfile {
@@ -43,14 +45,23 @@ fn outline(node: &FormNode, out: &mut String, depth: usize) {
     let indent = "  ".repeat(depth);
     match node {
         FormNode::Field {
-            widget, intended, ..
+            widget,
+            intended,
+            presence,
+            ..
         } => {
             let clamp = if widget == intended {
                 String::new()
             } else {
                 format!(" (intended {intended:?})")
             };
-            out.push_str(&format!("{indent}{name}: field {widget:?}{clamp}\n"));
+            // The presence *kind* only: literals differ per format by design, the shape must not.
+            let state = match presence {
+                Presence::Absent { .. } => "absent",
+                Presence::Set { .. } => "set",
+                Presence::Invalid { .. } => "invalid",
+            };
+            out.push_str(&format!("{indent}{name}: field {widget:?}{clamp} {state}\n"));
         }
         FormNode::Group {
             children, occupancy, ..
@@ -60,11 +71,19 @@ fn outline(node: &FormNode, out: &mut String, depth: usize) {
                 outline(c, out, depth + 1);
             }
         }
-        FormNode::Repeat { bounds, .. } => {
+        FormNode::Repeat {
+            bounds,
+            items,
+            occupancy,
+            ..
+        } => {
             out.push_str(&format!(
-                "{indent}{name}: repeat min={:?} max={:?}\n",
+                "{indent}{name}: repeat {occupancy:?} min={:?} max={:?}\n",
                 bounds.min, bounds.max
             ));
+            for i in items {
+                outline(i, out, depth + 1);
+            }
         }
         FormNode::Unknown { .. } => out.push_str(&format!("{indent}{name}: unknown\n")),
         FormNode::Cyclic { schema_ptr, .. } => {
@@ -91,4 +110,37 @@ fn eslintrc_outline_on_a_host_that_cannot_mask_or_slide() {
     let mut out = String::new();
     outline(&c.root, &mut out, 0);
     insta::assert_snapshot!(out);
+}
+
+/// Verification item 1: the same logical document in all three Doc formats must produce the
+/// same IR modulo literals. One snapshot, asserted three times.
+#[test]
+fn one_document_three_formats_one_outline() {
+    let schema = serde_json::json!({"properties":{
+        "host":{"type":"string"},
+        "port":{"type":"integer","minimum":1,"maximum":65535},
+        "servers":{"type":"array","items":{"type":"object",
+            "properties":{"name":{"type":"string"}}}},
+        "tls":{"type":"object","properties":{"on":{"type":"boolean"}}}}});
+    let sources = [
+        (
+            DocFormat::Toml,
+            "host = \"a\"\nport = 80\n\n[tls]\non = true\n\n[[servers]]\nname = \"web-1\"\n",
+        ),
+        (
+            DocFormat::Json,
+            "{\"host\":\"a\",\"port\":80,\"tls\":{\"on\":true},\"servers\":[{\"name\":\"web-1\"}]}",
+        ),
+        (
+            DocFormat::Yaml,
+            "host: a\nport: 80\ntls:\n  on: true\nservers:\n  - name: web-1\n",
+        ),
+    ];
+    for (fmt, src) in sources {
+        let doc = AnyDocument::from_str_as(src, fmt).expect("parse");
+        let c = project(&schema, Some(&doc), &desktop());
+        let mut out = String::new();
+        outline(&c.root, &mut out, 0);
+        insta::assert_snapshot!("one_document_three_formats", out, &format!("{fmt:?}"));
+    }
 }
