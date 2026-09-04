@@ -45,9 +45,7 @@ pub fn extract(f: &SchemaFacts) -> Vec<Constraint> {
         out.push(Constraint::MaxLength { value: v });
     }
     if let Some(p) = &f.pattern {
-        out.push(Constraint::Pattern {
-            source: p.clone(),
-        });
+        out.push(Constraint::Pattern { source: p.clone() });
     }
     if f.unique_items {
         out.push(Constraint::UniqueItems);
@@ -59,10 +57,22 @@ pub fn extract(f: &SchemaFacts) -> Vec<Constraint> {
 /// this exists so a bare host still says something true.
 pub fn guidance(c: &Constraint) -> String {
     match c {
-        Constraint::Minimum { value, exclusive: false } => format!("at least {value}"),
-        Constraint::Minimum { value, exclusive: true } => format!("greater than {value}"),
-        Constraint::Maximum { value, exclusive: false } => format!("at most {value}"),
-        Constraint::Maximum { value, exclusive: true } => format!("less than {value}"),
+        Constraint::Minimum {
+            value,
+            exclusive: false,
+        } => format!("at least {value}"),
+        Constraint::Minimum {
+            value,
+            exclusive: true,
+        } => format!("greater than {value}"),
+        Constraint::Maximum {
+            value,
+            exclusive: false,
+        } => format!("at most {value}"),
+        Constraint::Maximum {
+            value,
+            exclusive: true,
+        } => format!("less than {value}"),
         Constraint::MultipleOf { value } => format!("a multiple of {value}"),
         Constraint::MinLength { value } => format!("at least {value} characters"),
         Constraint::MaxLength { value } => format!("at most {value} characters"),

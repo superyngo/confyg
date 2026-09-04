@@ -27,15 +27,19 @@ pub fn child_ordinal(doc: &AnyDocument, parent: &Path, projection_index: usize) 
     let Some(node) = node_at(&tree.root, parent) else {
         return projection_index;
     };
-    let ordinal = node
-        .children
+    raw_ordinal(node, projection_index).saturating_sub(root_prefix_offset(doc, node, parent))
+}
+
+/// The same conversion in the parent's own child-index space, before YAML's root prefix is
+/// subtracted — the space the comment back-off and the TOML partition both reason in.
+fn raw_ordinal(node: &Node, projection_index: usize) -> usize {
+    node.children
         .iter()
         .enumerate()
         .filter(|(_, c)| !is_comment(c))
         .map(|(i, _)| i)
         .nth(projection_index)
-        .unwrap_or(node.children.len());
-    ordinal.saturating_sub(root_prefix_offset(doc, node, parent))
+        .unwrap_or(node.children.len())
 }
 
 /// Where a key the Document does not hold yet belongs: its **Schema `properties` order** position
@@ -63,8 +67,15 @@ pub fn schema_slot(doc: &AnyDocument, parent: &Path, key: &str, schema_order: &[
         .filter(|c| rank(&c.key) <= target_rank)
         .count();
 
-    let ordinal = child_ordinal(doc, parent, before);
-    clamp_to_partition(doc, node, ordinal)
+    // A leading comment block documents the entry *below* it, so a new key inserted "before
+    // `ca`" belongs above `ca`'s comment, not between the comment and the key it describes.
+    // At the end of the parent there is no such entry, so a trailing block is left alone.
+    let mut ordinal = raw_ordinal(node, before);
+    while ordinal > 0 && ordinal < node.children.len() && is_comment(&node.children[ordinal - 1]) {
+        ordinal -= 1;
+    }
+    let ordinal = clamp_to_partition(doc, node, ordinal);
+    ordinal.saturating_sub(root_prefix_offset(doc, node, parent))
 }
 
 /// A plain key may only land at or before the parent's first capturing header. A `[a.b]` dotted

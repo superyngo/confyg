@@ -98,7 +98,10 @@ fn a_violation_summary_lists_every_problem_depth_first() {
     let sum = summary(&c.root, &c.state);
     assert_eq!(sum.items.len(), 2);
     assert!(matches!(sum.validation, Validation::Available));
-    assert_eq!(sum.items[0].path, vec![confy_core::model::node::Seg::Key("port".into())]);
+    assert_eq!(
+        sum.items[0].path,
+        vec![confy_core::model::node::Seg::Key("port".into())]
+    );
 }
 
 #[test]

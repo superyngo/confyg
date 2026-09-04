@@ -4,12 +4,12 @@
 //! review, and it still fails on any classification, ordering or clamp regression. The full IR
 //! for this fixture is tens of thousands of lines, which no reviewer reads.
 
-use confyg_form::affordance::{Density, HostProfile};
-use confyg_form::compile::{compile, path_of, project};
-use confyg_form::ir::{FormNode, Presence};
 use confy_core::model::any_doc::AnyDocument;
 use confy_core::model::document::DocFormat;
 use confy_core::model::node::Seg;
+use confyg_form::affordance::{Density, HostProfile};
+use confyg_form::compile::{compile, path_of, project};
+use confyg_form::ir::{FormNode, Presence};
 
 fn desktop() -> HostProfile {
     HostProfile {
@@ -61,10 +61,14 @@ fn outline(node: &FormNode, out: &mut String, depth: usize) {
                 Presence::Set { .. } => "set",
                 Presence::Invalid { .. } => "invalid",
             };
-            out.push_str(&format!("{indent}{name}: field {widget:?}{clamp} {state}\n"));
+            out.push_str(&format!(
+                "{indent}{name}: field {widget:?}{clamp} {state}\n"
+            ));
         }
         FormNode::Group {
-            children, occupancy, ..
+            children,
+            occupancy,
+            ..
         } => {
             out.push_str(&format!("{indent}{name}: group {occupancy:?}\n"));
             for c in children {

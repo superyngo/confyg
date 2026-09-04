@@ -78,7 +78,11 @@ fn every_ladder_terminates_in_a_universal_control() {
         assert!(
             matches!(
                 terminal,
-                Widget::Text | Widget::Radio | Widget::Tristate | Widget::DisplayOnly | Widget::RawText
+                Widget::Text
+                    | Widget::Radio
+                    | Widget::Tristate
+                    | Widget::DisplayOnly
+                    | Widget::RawText
             ),
             "{w:?} has no chain to a universally available control (ADR 0004)"
         );

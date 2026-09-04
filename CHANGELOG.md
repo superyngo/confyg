@@ -127,3 +127,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it blindly, then clamps it before TOML's first capturing `[table]`/`[[aot]]` header, since a
   plain key after one is silently re-keyed into that section (D1). Both bodies carry a
   `// PORTED:` note naming the `pub(crate)` upstream logic they duplicate.
+- 2026-09-04 — Added `crates/confyg-session/src/lower.rs`: `SetterIntent::{SetValue, Unset}`
+  lower onto `Replace` for a written Field, `Insert` at the Schema slot for an absent one, and
+  `Delete` when the value equals the effective default, because the default is written by
+  absence (ADR 0003). A Schema-violating value is written and warned about, never refused;
+  `Refused` is reserved for an intent the host should not have offered (a required `Unset`, a
+  `readOnly` or `locked` Field). Every `Insert` passes `OnCollision::Cancel` and an explicit
+  `suggested_key`, and YAML gets a `SetTrailingComment` follow-up because its `Replace` swaps
+  the whole entry and would otherwise drop the comment. A key inserted before a documented
+  sibling lands above that sibling's leading comment block, not between the comment and the key
+  it describes. `tests/roundtrip.rs` runs every case, comment-interleaved included, in all three
+  Doc formats (verification item 2).

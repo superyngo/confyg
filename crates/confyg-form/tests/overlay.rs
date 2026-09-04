@@ -86,7 +86,10 @@ fn three_presence_states_and_the_default_stays_unwritten() {
     assert!(
         matches!(
             presence(&c.root, "level"),
-            Presence::Absent { default: Some(_), .. }
+            Presence::Absent {
+                default: Some(_),
+                ..
+            }
         ),
         "an unwritten default is Absent, not Set"
     );
