@@ -306,6 +306,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with a comment between every sibling leaves every comment attached to the entry it documents.
   Recorded in
   [`docs/debug/2026-09-04-real-binary-findings.md`](docs/debug/2026-09-04-real-binary-findings.md).
+- 2026-09-05 — Applied the settings-template redesign spec
+  ([`docs/spec/20260904-redesign/PATCH.md`](docs/spec/20260904-redesign/PATCH.md)) to `web/` and
+  `i18n/`: file chip, dirty dot, violation chip, and a gear app menu (appearance, language,
+  density, text size, about/diagnostics, install) replace the old theme button; a Field row is
+  now a three-track grid with a `...` menu (`rowmenu.ts`) holding Unset, copy value, raw
+  literal, and Schema info; a Repeat that is a section gets an entry column instead of a card
+  stack (`partition.ts`'s `SECTIONS_FLOOR` 3 → 2, `Section.repeat`); a coarse pointer or a
+  narrow width switches to a pushed single-column shell with a touch back bar. `main.ts` gained
+  `shell.init()`, `shell.markDirty()`/`markClean()` around the one write path and the save
+  handler, and a `sw.js` registration; `manifest.webmanifest` and `sw.js` were placed under the
+  new `web/public/` (not `web/` as the patch table literally states) because `vite build` only
+  copies `publicDir` verbatim — confirmed by `dist/` gaining both files only after the move.
+  `i18n/{en,zh-TW}.json` merged the two `.additions.json` files; the one overlapping key,
+  `form.repeat.add`, took the redesign's text ("Add entry" / "新增一組"). Removed the now-dead
+  `#theme` button wiring (`initTheme`/`toggleTheme`) from `main.ts` since `shell.ts` owns theme.
+  `partition.test.ts` updated for the new floor. Verified with `tsc --noEmit`, the full
+  `vitest` suite (37 tests), a production `vite build`, and both real-binary Playwright e2e
+  tests against the built bundle.
 
 ### Fixed
 
@@ -353,4 +371,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [`docs/debug/2026-09-04-real-binary-findings.md`](docs/debug/2026-09-04-real-binary-findings.md)
   finding 3. `tests/e2e/first-run.spec.ts` sequences around it with an explicit `blur()` and says
   so at the call site.
+- 2026-09-05 — The redesign's own goal — "a row is label | control | one 30px button"
+  (`docs/spec/20260904-redesign/PATCH.md`) — is not fully realized: `PATCH.md` never lists
+  `web/src/widgets/{common,text,stepper,slider,radio}.ts` for change, so `unsetButton` (ADR
+  0003) still renders its own `.unset` button inside `.control` on every widget that had one,
+  alongside the new `...` menu's own Unset item — two ways to unset the same field rather than
+  one. Left as found rather than removed unilaterally, since retiring `unsetButton` is a design
+  decision the patch document doesn't make.
+- 2026-09-05 — `manifest.webmanifest`'s three `/icons/icon-*.png` are not in the repo (no
+  `web/public/icons/`); installing confyg will show a broken/generic icon until real assets are
+  added.
+- 2026-09-05 — The violation chip (`#issues`) can never appear: `shell.ts` shows it only when
+  `#form .summary` is hidden, but nothing in the patch ever sets `summary.hidden = true` — there
+  is no dismiss control on the summary itself. The chip's `click` handler (un-hide the summary)
+  is reachable code with no way to reach it.
+- 2026-09-05 — `PATCH.md`'s `main.ts` wiring section instructs calling `shell.onSnapshot(snapshot)`
+  after `render(...)`, but `Shell` defines no such method — `render.ts` already calls
+  `appShell.afterRender()` itself at the end of `render()`. Skipped as redundant/nonexistent
+  rather than wired, since adding it would not compile.
 

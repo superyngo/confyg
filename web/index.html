@@ -2,28 +2,55 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1b2027" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+TC:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
     <title>confyg</title>
   </head>
   <body>
-    <div class="chrome">
-      <label>
+    <!-- Title bar: what document is open, whether it is written, and the two host actions.
+         Everything about the app itself is behind the gear, so the bar stays about the file. -->
+    <header class="chrome">
+      <span class="mark" aria-hidden="true"></span>
+      <span class="wordmark">confyg</span>
+      <span id="file-chip" class="file-chip"><span id="file-name">config.toml</span><span id="file-fmt" class="file-fmt"></span></span>
+      <span id="dirty" class="dirty" hidden data-i18n="form.state.unsaved">Unsaved</span>
+      <button id="issues" class="issue-chip" type="button" hidden></button>
+      <span class="spacer"></span>
+      <input id="search" type="search" class="search-box" data-i18n-placeholder="form.search.placeholder" />
+      <label class="file-open">
         <span data-i18n="form.action.open">Open</span>
         <input id="open" type="file" accept=".toml,.json,.yaml,.yml" hidden />
       </label>
-      <button id="save" type="button" data-i18n="form.action.save">Save</button>
       <button id="schema" type="button" data-i18n="form.action.schema">Schema</button>
-      <input
-        id="search"
-        type="search"
-        class="search-box"
-        data-i18n-placeholder="form.search.placeholder"
-      />
-      <span class="spacer"></span>
-      <button id="theme" type="button" data-i18n="form.action.theme">Theme</button>
+      <button id="app-menu" class="icon-button" type="button" aria-haspopup="menu" aria-expanded="false" data-i18n-title="form.app.menu">&#9881;</button>
+      <button id="save" class="primary" type="button" data-i18n="form.action.save">Save</button>
+    </header>
+
+    <!-- The application's own settings. A popover on a pointer, a pushed page on a phone. -->
+    <div id="app-panel" class="app-panel" role="menu" hidden>
+      <p class="app-panel-title" data-i18n="form.app.group">Application</p>
+      <button type="button" role="menuitem" data-pane="appearance" data-i18n="form.app.appearance">Appearance &amp; language</button>
+      <button type="button" role="menuitem" data-pane="about" data-i18n="form.app.about">About &amp; diagnostics</button>
+      <button type="button" role="menuitem" data-pane="pwa" data-i18n="form.app.pwa">Install</button>
     </div>
+
+    <!-- Touch: the section list is a page and a section is pushed on top of it. -->
+    <div id="touch-bar" class="touch-bar" hidden>
+      <button id="touch-back" class="back" type="button" data-i18n="form.action.back">Back</button>
+      <span id="touch-title" class="touch-title"></span>
+    </div>
+
     <div id="results"></div>
     <main id="form"></main>
+    <div id="app-pane" class="app-pane" hidden></div>
+    <div id="toast" class="toast" hidden></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

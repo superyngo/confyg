@@ -1,324 +1,892 @@
 /* The renderer shell's layout. Every colour comes from tokens.css — no literal colour
-   appears below this line, so a theme change is one attribute. */
-@import "./tokens.css";
+   appears below this line, so a theme change is a token change.
 
-* {
+   Three screens, one vocabulary:
+     - chrome      the title bar: the document, its state, the two host actions, the gear
+     - .form-shell the master-detail body: section list | entry column | detail pane
+     - .node.field one row = label track | control track | 32px menu track
+
+   Adaptation is by width and by pointer, not by device: below 1000px the section list
+   narrows, below a 520px detail pane the entry column becomes a drawer, and a coarse
+   pointer turns the whole thing into the pushed-page shell (`body[data-nav="push"]`). */
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 html,
 body {
+  margin: 0;
   height: 100%;
 }
 body {
-  margin: 0;
-  font-family: var(--font);
-  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
   color: var(--fg);
+  font-family: var(--font);
+  font-size: calc(13px * var(--font-scale));
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--sel-edge);
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+::placeholder {
+  color: var(--ghost);
+  font-style: italic;
+}
+
+/* ---------- chrome ---------- */
+.chrome {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  min-height: 46px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.mark {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--accent);
+}
+.wordmark {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.file-chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 0.85em;
+  color: var(--muted);
+}
+.file-fmt {
+  color: var(--faint);
+}
+.dirty {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.9em;
+  color: var(--notice);
+}
+.dirty::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.issue-chip {
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--violation);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--violation);
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.issue-chip:hover {
+  background: var(--violation-soft);
+}
+.spacer {
+  flex: 1;
+}
+.chrome button,
+.file-open {
+  display: inline-flex;
+  align-items: center;
+  min-height: max(30px, calc(var(--row-h) - 2px));
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+  cursor: pointer;
+}
+.chrome button:hover,
+.file-open:hover {
+  border-color: var(--sel-edge);
+}
+.chrome .primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 500;
+}
+.chrome .icon-button {
+  padding: 0;
+  width: 30px;
+  justify-content: center;
+}
+.chrome .icon-button[aria-expanded="true"] {
+  background: var(--accent-soft);
+}
+.search-box {
+  min-width: 160px;
+  min-height: max(30px, calc(var(--row-h) - 2px));
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   background: var(--bg);
 }
 
-.chrome {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
-}
-.chrome button,
-.chrome label {
-  min-height: var(--row-h);
-  padding: 0 10px;
+/* ---------- application settings ---------- */
+.app-panel {
+  position: absolute;
+  z-index: 40;
+  top: 42px;
+  right: 12px;
+  min-width: 208px;
+  padding: 0;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  color: var(--fg);
-  background: var(--surface);
-  font: inherit;
-  cursor: pointer;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--panel);
+  box-shadow: var(--shadow);
 }
-.chrome .spacer {
-  flex: 1;
+.app-panel-title {
+  margin: 0;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
 }
-
-/* ---- Partition: `sections` is master-detail, `scroll` is one page ---- */
-.form-shell {
-  display: grid;
-  grid-template-columns: minmax(180px, 22%) 1fr;
-  gap: 16px;
-  padding: 12px;
-}
-.form-shell .form-loose {
-  grid-column: 1 / -1;
-}
-.section-list {
+.app-panel button {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  border-right: 1px solid var(--border);
-  padding-right: 8px;
-}
-.section-tab {
-  display: flex;
-  gap: 6px;
   align-items: center;
-  min-height: var(--hit);
-  padding: 0 8px;
+  width: 100%;
+  min-height: max(32px, var(--row-h));
+  padding: 0 12px;
   border: 0;
-  border-radius: var(--radius);
-  color: var(--fg);
   background: transparent;
-  font: inherit;
   text-align: left;
   cursor: pointer;
 }
-.section-tab:hover {
-  background: var(--accent-soft);
-}
-.section-tab[aria-current="true"] {
+.app-panel button:hover {
   background: var(--sel);
-  box-shadow: inset 2px 0 0 var(--sel-edge);
 }
-.form-page {
-  padding: 12px;
+.app-pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px 40px;
 }
-
-.node-heading {
-  margin: 12px 0 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fg);
+.pref-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: 10px 12px;
+  align-items: center;
+  max-width: 620px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
 }
-
-/* ---- nodes ---- */
-.node {
-  padding: 4px 0;
-}
-.node.group,
-.node.repeat {
-  margin-left: var(--indent);
-  border-left: 1px solid var(--border);
-  padding-left: calc(var(--indent) / 2);
-}
-/* An Absent collection keeps its heading and hides its entries — the entries live in
-   `.repeat-items` now, so the rule names that wrapper rather than a direct child. `Add`
-   is deliberately not hidden: an absent collection is exactly the one the core's
-   Absent-parent lowering fills, so hiding it left no way to reach that path. */
-.node.group[data-occupancy="absent"] > .node,
-.node.repeat[data-occupancy="absent"] > .repeat-items {
-  display: none;
-}
-.field {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: baseline;
-  min-height: var(--row-h);
-}
-.field-label {
-  min-width: 12rem;
-  color: var(--muted);
-}
-/* The control the widget registry mounted. `.field-literal` is a display-only value, so it
-   is the one place a value is text rather than an input. */
-.control {
+.segmented {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  align-items: baseline;
 }
-.control input,
+.segmented button {
+  min-height: var(--row-h);
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.segmented button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ---------- master-detail ---------- */
+#form {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.form-shell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  position: relative;
+}
+.section-list {
+  flex: none;
+  width: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+.section-tab {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: max(34px, var(--row-h));
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.section-tab > span:first-child {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.section-tab:hover {
+  background: var(--panel);
+}
+.section-tab[aria-current="true"] {
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.section-detail {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 18px 22px 40px;
+}
+.form-page {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 18px 22px 40px;
+}
+.form-loose {
+  padding: 12px 22px 0;
+}
+
+/* ---------- Repeat: an entry column, or a drawer when the pane is narrow ---------- */
+.entry-column {
+  flex: none;
+  width: var(--entry-w);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+.entry-column-title {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 4px 4px 8px;
+  font-size: 0.9em;
+  font-weight: 600;
+}
+.entry-count {
+  font-family: var(--mono);
+  color: var(--faint);
+  font-weight: 400;
+}
+.entry-tab {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: max(40px, var(--row-h));
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.entry-tab:hover {
+  background: var(--panel);
+}
+.entry-tab[aria-current="true"] {
+  background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.entry-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--mono);
+  font-size: 0.9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.entry-label .missing {
+  font-family: var(--font);
+  font-size: 0.8em;
+  color: var(--violation);
+}
+/* Directly under the last entry, not pinned to the column foot: the buttons belong to
+   the list, and a pinned bar reads as chrome for the whole pane. */
+.entry-actions {
+  display: flex;
+  gap: 6px;
+  padding: 6px 2px 0;
+}
+.entry-actions button {
+  min-height: max(32px, var(--row-h));
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+.entry-actions .add {
+  flex: 1;
+  border-style: dashed;
+  border-color: var(--border-strong);
+}
+.entry-actions .remove {
+  color: var(--violation);
+}
+.entry-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.entry-drawer-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: max(30px, var(--row-h));
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--panel);
+  cursor: pointer;
+}
+body[data-entry="drawer"] .entry-column {
+  position: absolute;
+  z-index: 21;
+  top: 0;
+  bottom: 0;
+  left: var(--sidebar-w);
+  width: 268px;
+  box-shadow: 24px 0 48px oklch(0% 0 0 / 0.4);
+}
+body[data-entry="drawer"] .entry-column[hidden] {
+  display: none;
+}
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: var(--scrim);
+  border: 0;
+}
+
+/* ---------- nodes ---------- */
+.node {
+  margin: 0;
+}
+.node.group {
+  padding: 0;
+  border: 0;
+}
+.node.group .node.group {
+  margin-top: 18px;
+  padding-left: var(--indent);
+  border-left: 1px solid var(--border);
+}
+.node-heading {
+  margin: 0 0 4px;
+  font-size: 1.25em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.node.group .node.group > .node-heading {
+  font-size: 1em;
+  color: var(--muted);
+}
+.node-path {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  color: var(--faint);
+  cursor: help;
+}
+.description {
+  margin: 0 0 12px;
+  max-width: 60ch;
+  color: var(--faint);
+  font-size: 0.9em;
+  text-wrap: pretty;
+}
+.violation {
+  margin: 0 0 8px;
+  color: var(--violation);
+  font-size: 0.85em;
+}
+.notice {
+  margin: 0 0 8px;
+  color: var(--notice);
+  font-size: 0.85em;
+}
+.degrade {
+  margin: 4px 0 0;
+  color: var(--faint);
+  font-size: 0.8em;
+}
+
+/* One field = label | control | menu. The label track is fluid: a fixed track plus a
+   flexible control is what clipped values in a narrow pane. */
+.node.field {
+  display: grid;
+  grid-template-columns: minmax(104px, var(--label-w)) minmax(0, 1fr) 32px;
+  gap: 2px 12px;
+  align-items: center;
+  padding: 2px 0;
+}
+.field-label {
+  grid-column: 1;
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  min-height: var(--row-h);
+  color: var(--muted);
+  cursor: help;
+}
+.control {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+.row-menu-button {
+  grid-column: 3;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+}
+.row-menu-button:hover {
+  background: var(--panel);
+  color: var(--fg);
+}
+/* Explicit tracks everywhere: a conditional message must not shift the next row. */
+.node.field > .description,
+.node.field > .violation,
+.node.field > .notice,
+.node.field > .degrade {
+  grid-column: 2;
+  margin: 0 0 6px;
+}
+.node.field.revealed,
+.node.group.revealed > .node-heading {
+  outline: 2px solid var(--sel-edge);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* ---------- controls ---------- */
+.control input[type="text"],
+.control input[type="number"],
+.control input[type="password"],
+.control input[type="search"],
 .control select,
 .control textarea {
-  font: inherit;
-  color: var(--fg);
-  background: var(--bg);
+  min-width: 0;
+  min-height: var(--row-h);
+  padding: 0 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  min-height: var(--hit);
-  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--bg);
+}
+.control input[type="text"],
+.control input[type="number"],
+.control input[type="password"] {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+.control textarea {
+  flex: 1;
+  min-height: calc(var(--row-h) * 2);
+  padding: 6px 10px;
+  font-family: var(--mono);
+  resize: vertical;
+}
+.control input:focus-visible,
+.control select:focus-visible,
+.control textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+.control.invalid input,
+.control.invalid select,
+.control.invalid textarea {
+  border-color: var(--violation);
 }
 .control input[type="range"] {
-  padding: 0;
+  flex: 1;
+  min-width: 120px;
+  max-width: 260px;
+  accent-color: var(--accent);
 }
-.control input[type="number"] {
-  width: 8rem;
+.control .stepper {
+  width: var(--row-h);
+  min-height: var(--row-h);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
 }
-.field-literal {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
+.control .choice {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: var(--row-h);
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.control .choice[aria-pressed="true"],
+.control .choice:has(:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .ghost {
   color: var(--ghost);
   font-style: italic;
 }
-/* The state of the value, not of the message: `.violation` styles the text that explains it. */
-.control.invalid input,
-.control.invalid select {
-  border-color: var(--violation);
+.badge {
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 0.75em;
+  line-height: 1.5;
 }
-.choice {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-}
-.unset {
+.badge.unit {
+  border: 0;
+  background: var(--panel);
   color: var(--muted);
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  min-height: var(--hit);
 }
-.unset:disabled {
-  opacity: 0.5;
+.badge.required-marker {
+  border: 0;
+  padding: 0;
+  color: var(--required);
 }
-.degrade {
-  flex-basis: 100%;
-  margin: 0;
+.badge.locked {
+  color: var(--locked);
+}
+.badge.deprecated {
+  color: var(--deprecated);
+}
+.badge.violation-count {
+  border-color: var(--violation);
+  color: var(--violation);
+  border-radius: 999px;
+}
+/* Read-only and deprecated stay visible and lose contrast; hiding a value the file
+   contains would be a lie about the document. */
+.node.field[data-widget="displayOnly"] .control,
+.node.field:has(.badge.deprecated) .control {
+  color: var(--locked);
+}
+
+/* ---------- the row menu ---------- */
+.row-menu {
+  position: absolute;
+  z-index: 41;
+  min-width: 210px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.row-menu-path {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 0.8em;
   color: var(--faint);
 }
-.raw-preview {
-  margin: 2px 0 2px var(--indent);
+.row-menu button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: max(32px, var(--row-h));
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.row-menu button:hover {
+  background: var(--sel);
+}
+.row-menu button:disabled {
+  color: var(--faint);
+  cursor: default;
+}
+
+/* ---------- unknown keys, folded to the page foot ---------- */
+.unknown-fold {
+  margin-top: 26px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.unknown-fold > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+.node.unknown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.node.unknown .field-label {
+  color: var(--notice);
   font-family: var(--mono);
+  cursor: default;
+}
+.raw-preview {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.85em;
   color: var(--muted);
   white-space: pre-wrap;
 }
 
-.description {
-  margin: 2px 0 2px var(--indent);
-  color: var(--faint);
+/* ---------- search results, summary, toast ---------- */
+#results:empty {
+  display: none;
 }
-.violation {
-  margin: 2px 0 2px var(--indent);
-  color: var(--violation);
-}
-.notice {
-  margin: 2px 0 2px var(--indent);
-  color: var(--notice);
-}
-
-.badge {
-  padding: 0 5px;
-  border-radius: var(--radius);
-  font-size: 11px;
-  line-height: 16px;
-}
-.badge.required-marker {
-  color: var(--required);
-}
-.badge.deprecated {
-  color: var(--deprecated);
-  border: 1px solid var(--deprecated);
-}
-.badge.locked {
-  color: var(--locked);
-  border: 1px solid var(--locked);
-}
-.badge.unit {
-  color: var(--muted);
-}
-.badge.violation-count {
-  color: var(--violation);
-  border: 1px solid var(--violation);
-}
-
-/* ---- Repeat: a card per object entry, a row per scalar one ---- */
-.repeat-count {
-  margin-left: 6px;
-  color: var(--muted);
-  font-weight: normal;
-}
-.card {
-  margin: 6px 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 4px 8px;
-}
-.card-head,
-.row-head {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-  min-height: var(--row-h);
-}
-.repeat-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: baseline;
-}
-.repeat-add,
-.repeat-remove {
-  min-height: var(--hit);
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--fg);
-  background: none;
-  font: inherit;
-  cursor: pointer;
-}
-/* A gate, not a hidden control: the reason is in the button's title, and the core would
-   refuse the same intent (`lower.rs`). */
-.repeat-add:disabled,
-.repeat-remove:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ---- The violation summary and Form search ---- */
-.summary {
-  padding: 6px 12px;
+#results {
+  flex: none;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
-.summary-heading {
-  margin: 0 0 4px;
-  font-size: 13px;
-  color: var(--violation);
-}
-.summary-items {
-  margin: 0;
-  padding-left: var(--indent);
-}
-.summary-jump,
-.search-jump {
-  padding: 0;
+.result {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  width: 100%;
+  min-height: max(30px, var(--row-h));
+  padding: 0 8px;
   border: 0;
-  color: var(--fg);
-  background: none;
-  font: inherit;
+  border-radius: 8px;
+  background: transparent;
   text-align: left;
   cursor: pointer;
 }
-.summary-jump:hover,
-.search-jump:hover {
+.result:hover {
+  background: var(--sel);
+}
+.result-path {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.8em;
+  color: var(--faint);
+}
+.summary {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 14px 22px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--violation);
+  border-radius: var(--radius-lg);
+  background: var(--violation-soft);
+}
+.summary[hidden] {
+  display: none;
+}
+.summary ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.summary button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.summary button:hover {
   color: var(--accent);
 }
-.search-results {
-  max-height: 40vh;
-  overflow-y: auto;
-  border-bottom: 1px solid var(--border);
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 50;
+  padding: 10px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
   background: var(--panel);
-}
-.search-hit {
-  padding: 2px 12px;
-  min-height: var(--row-h);
-}
-.search-path {
-  margin-left: 8px;
-  color: var(--faint);
-  font-family: var(--mono);
-  font-size: 11px;
-}
-/* Where a jump landed. Marking it beats scrolling silently: on a long page the value moved
-   under the user, and nothing else says which node they asked for. */
-.revealed {
-  outline: 1px solid var(--accent);
-  outline-offset: 2px;
+  box-shadow: var(--shadow);
+  font-size: 0.9em;
 }
 
-/* Touch pointers get upstream's coarse row height without a second layout. */
-@media (pointer: coarse) {
+/* ---------- narrow width ---------- */
+@media (max-width: 1000px) {
   :root {
-    --row-h: var(--hit);
+    --sidebar-w: 190px;
+  }
+  .section-tab .entry-count {
+    display: none;
+  }
+}
+
+/* ---------- pushed-page shell: a coarse pointer, or a phone-width window ----------
+   The same DOM. `shell.ts` sets data-nav="push" and which page is on top; nothing is
+   re-rendered, so a section keeps its scroll position and its focus. */
+body[data-nav="push"] .touch-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 0 8px;
+  min-height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+body[data-nav="push"] .touch-bar[hidden] {
+  display: none;
+}
+.touch-bar .back {
+  min-height: var(--hit);
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.touch-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.15em;
+  font-weight: 600;
+}
+body[data-nav="push"] .form-shell {
+  flex-direction: column;
+}
+body[data-nav="push"] .section-list {
+  width: 100%;
+  border-right: 0;
+  padding: 12px;
+}
+body[data-nav="push"] .section-tab {
+  min-height: 52px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+}
+body[data-nav="push"] .section-tab + .section-tab {
+  border-top: 0;
+}
+body[data-nav="push"] .section-tab::after {
+  content: "\203A";
+  color: var(--faint);
+}
+body[data-nav="push"] .entry-column,
+body[data-nav="push"] .section-detail {
+  width: 100%;
+  border-right: 0;
+}
+/* One page at a time: the list, or the pushed section. */
+body[data-nav="push"][data-page="detail"] .section-list,
+body[data-nav="push"][data-page="list"] .section-detail,
+body[data-nav="push"][data-page="list"] .entry-column {
+  display: none;
+}
+/* Label above control, and the row itself is the long-press target for the row menu. */
+body[data-nav="push"] .node.field {
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border);
+}
+body[data-nav="push"] .field-label {
+  grid-column: 1;
+  font-size: 1.05em;
+  cursor: default;
+}
+body[data-nav="push"] .control {
+  grid-column: 2;
+  justify-content: flex-end;
+}
+body[data-nav="push"] .control input[type="text"],
+body[data-nav="push"] .control input[type="number"],
+body[data-nav="push"] .control input[type="password"] {
+  text-align: right;
+}
+body[data-nav="push"] .row-menu-button {
+  display: none;
+}
+body[data-nav="push"] .node.field > .description,
+body[data-nav="push"] .node.field > .violation {
+  grid-column: 1 / -1;
+}
+/* The row menu becomes a sheet. */
+body[data-nav="push"] .row-menu {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  min-width: 0;
+  border-radius: 20px;
+}
+body[data-nav="push"] .row-menu button {
+  min-height: 52px;
+  font-size: 1.05em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 }

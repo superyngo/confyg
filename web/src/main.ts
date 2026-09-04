@@ -3,10 +3,11 @@
 // core's, arriving as a `SetterSnapshot`.
 import { Boundary } from "./boundary.js";
 import { SAMPLE, setSampleMode } from "./samples.js";
-import { formatFromName, initTheme, saveText, toggleTheme, type DocFormat } from "./host-io.js";
+import { formatFromName, saveText, type DocFormat } from "./host-io.js";
 import { applyStaticI18n } from "./i18n.js";
 import { render, reveal, type HostCtx } from "./render.js";
 import { resultList } from "./search.js";
+import { shell } from "./shell.js";
 import "./style.css";
 
 const root = document.getElementById("form") as HTMLElement;
@@ -19,12 +20,14 @@ let fmt: DocFormat = "Toml";
 let name = "config.toml";
 let handle: FileSystemFileHandle | null = null;
 let text = "";
+let booted = false;
 
 type SnapshotOrError = Parameters<typeof render>[0] | { error: string };
 
 // A malformed request comes back in the same envelope rather than trapping, so the host
 // shows the message instead of losing the session.
 function show(snapshot: SnapshotOrError): void {
+  if (booted) shell.markDirty();
   if ("error" in snapshot) {
     const message = document.createElement("p");
     message.className = "violation";
@@ -71,10 +74,8 @@ const session: HostCtx = {
   },
 };
 
-initTheme();
+shell.init();
 applyStaticI18n();
-
-document.getElementById("theme")?.addEventListener("click", toggleTheme);
 
 openInput.addEventListener("change", async () => {
   const file = openInput.files?.[0];
@@ -92,6 +93,7 @@ document.getElementById("save")?.addEventListener("click", async () => {
   if (!boundary) return;
   show(boundary.dispatch({ command: "save" }));
   handle = await saveText(text, fmt, name, handle);
+  shell.markClean(name, fmt);
   // Saved bytes have a name behind them now, sample or not.
   setSampleMode(false);
 });
@@ -148,3 +150,6 @@ show(
   }),
 );
 setSampleMode(true);
+booted = true;
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");

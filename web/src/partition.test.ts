@@ -53,9 +53,9 @@ function irWithGroups(n: number): FormNode {
 }
 
 describe("partition", () => {
-  test("fewer than three depth-1 Groups falls back to scroll", () => {
-    expect(partition(irWithGroups(2)).kind).toBe("scroll");
-    expect(partition(irWithGroups(3)).kind).toBe("sections");
+  test("fewer than two depth-1 Groups falls back to scroll", () => {
+    expect(partition(irWithGroups(1)).kind).toBe("scroll");
+    expect(partition(irWithGroups(2)).kind).toBe("sections");
   });
 
   test("sections come from depth-1 Groups only", () => {
@@ -70,6 +70,6 @@ describe("partition", () => {
   });
 
   test("scroll still names its sections, because they are headings", () => {
-    expect(partition(irWithGroups(2)).sections.map((s) => s.key)).toEqual(["a", "b"]);
+    expect(partition(irWithGroups(1)).sections.map((s) => s.key)).toEqual(["a"]);
   });
 });

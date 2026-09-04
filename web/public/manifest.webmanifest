@@ -1,0 +1,70 @@
+{
+  "name": "confyg",
+  "short_name": "confyg",
+  "description": "A schema-driven configurator for structured configuration files.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1b2027",
+  "theme_color": "#1b2027",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "application/toml": [
+          ".toml"
+        ],
+        "application/json": [
+          ".json",
+          ".jsonc"
+        ],
+        "application/yaml": [
+          ".yaml",
+          ".yml"
+        ]
+      }
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "config",
+          "accept": [
+            "application/toml",
+            "application/json",
+            "application/yaml",
+            "text/plain"
+          ]
+        }
+      ]
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "Open a config",
+      "url": "/?open=1"
+    }
+  ]
+}
