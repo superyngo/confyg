@@ -5,6 +5,7 @@ import { Boundary } from "./boundary.js";
 import { formatFromName, initTheme, saveText, toggleTheme, type DocFormat } from "./host-io.js";
 import { applyStaticI18n } from "./i18n.js";
 import { render } from "./render.js";
+import type { Ctx } from "./widgets/index.js";
 import "./style.css";
 
 const root = document.getElementById("form") as HTMLElement;
@@ -29,8 +30,29 @@ function show(snapshot: SnapshotOrError): void {
     return;
   }
   text = snapshot.text;
-  render(snapshot, root);
+  render(snapshot, root, session);
 }
+
+// The controls' one way to write: a literal in, an intent out, and the snapshot that comes
+// back is what the next render draws. `rawText` hands over bytes rather than JSON, so an
+// unparseable literal is passed through as the string it is.
+const session: Ctx = {
+  set(path, literal) {
+    if (!boundary) return;
+    let value: unknown;
+    try {
+      value = JSON.parse(literal);
+    } catch {
+      value = literal;
+    }
+    // `SetterIntent` is internally tagged on `kind` (`confyg-ffi/tests/boundary.rs`).
+    show(boundary.dispatch({ intent: { kind: "setValue", path, value } }));
+  },
+  unset(path) {
+    if (!boundary) return;
+    show(boundary.dispatch({ intent: { kind: "unset", path } }));
+  },
+};
 
 initTheme();
 applyStaticI18n();

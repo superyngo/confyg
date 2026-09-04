@@ -121,6 +121,17 @@ pub struct FieldMeta {
     pub unit: Option<String>,
     pub constraints: Vec<Constraint>,
     pub raw: bool,
+    /// The menu family's choices, in Schema order, already carrying the string a person
+    /// reads. Empty for every other Widget: a host must never re-derive them from `enum`,
+    /// or `x-confyg.optionLabels` would be honored in one host and not the next.
+    pub options: Vec<FieldOption>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FieldOption {
+    pub value: Value,
+    pub label: String,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]

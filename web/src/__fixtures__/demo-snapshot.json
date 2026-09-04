@@ -36,7 +36,8 @@
           "writeOnly": false,
           "unit": null,
           "constraints": [],
-          "raw": false
+          "raw": false,
+          "options": []
         }
       },
       {
@@ -101,7 +102,8 @@
               "exclusive": false
             }
           ],
-          "raw": false
+          "raw": false,
+          "options": []
         }
       },
       {
@@ -131,7 +133,17 @@
           "writeOnly": false,
           "unit": null,
           "constraints": [],
-          "raw": false
+          "raw": false,
+          "options": [
+            {
+              "value": "dev",
+              "label": "dev"
+            },
+            {
+              "value": "prod",
+              "label": "prod"
+            }
+          ]
         }
       },
       {
@@ -172,7 +184,8 @@
               "exclusive": false
             }
           ],
-          "raw": false
+          "raw": false,
+          "options": []
         }
       },
       {
@@ -202,7 +215,8 @@
           "writeOnly": true,
           "unit": null,
           "constraints": [],
-          "raw": false
+          "raw": false,
+          "options": []
         }
       },
       {
@@ -250,7 +264,8 @@
               "writeOnly": false,
               "unit": null,
               "constraints": [],
-              "raw": false
+              "raw": false,
+              "options": []
             }
           },
           {
@@ -283,7 +298,8 @@
               "writeOnly": false,
               "unit": null,
               "constraints": [],
-              "raw": false
+              "raw": false,
+              "options": []
             }
           }
         ],
@@ -357,7 +373,8 @@
                   "writeOnly": false,
                   "unit": null,
                   "constraints": [],
-                  "raw": false
+                  "raw": false,
+                  "options": []
                 }
               },
               {
@@ -398,7 +415,8 @@
                       "exclusive": false
                     }
                   ],
-                  "raw": false
+                  "raw": false,
+                  "options": []
                 }
               }
             ],

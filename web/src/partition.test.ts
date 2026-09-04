@@ -43,6 +43,7 @@ function irWithGroups(n: number): FormNode {
           unit: null,
           constraints: [],
           raw: false,
+          options: [],
         },
       },
     ],

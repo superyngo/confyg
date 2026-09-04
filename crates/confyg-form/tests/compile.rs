@@ -133,3 +133,42 @@ fn an_uncompilable_pattern_still_projects_a_complete_form() {
         "D8: the document loses validation, not its form"
     );
 }
+
+#[test]
+fn a_menu_field_carries_its_choices_already_labelled() {
+    let s: serde_json::Value = serde_json::from_str(
+        r#"{"type":"object","properties":{"cipher":{"type":"string",
+            "enum":["aes-256-gcm","chacha20"],
+            "x-confyg":{"optionLabels":{"aes-256-gcm":"AES-256-GCM"}}}}}"#,
+    )
+    .unwrap();
+    let c = compile(&s, &host());
+    let FormNode::Group { children, .. } = &c.root else {
+        panic!("expected a Group")
+    };
+    let FormNode::Field { widget, meta, .. } = &children[0] else {
+        panic!("expected a Field")
+    };
+    assert_eq!(*widget, Widget::Radio, "two choices is under the 4 floor");
+    let labels: Vec<&str> = meta.options.iter().map(|o| o.label.as_str()).collect();
+    assert_eq!(
+        labels,
+        ["AES-256-GCM", "chacha20"],
+        "the label comes from the Annotation; an unlabelled value reads as authored"
+    );
+}
+
+#[test]
+fn a_field_with_no_enum_offers_no_choices() {
+    let s: serde_json::Value =
+        serde_json::from_str(r#"{"type":"object","properties":{"host":{"type":"string"}}}"#)
+            .unwrap();
+    let c = compile(&s, &host());
+    let FormNode::Group { children, .. } = &c.root else {
+        panic!("expected a Group")
+    };
+    let FormNode::Field { meta, .. } = &children[0] else {
+        panic!("expected a Field")
+    };
+    assert!(meta.options.is_empty());
+}

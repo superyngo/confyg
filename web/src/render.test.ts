@@ -24,14 +24,20 @@ describe("render", () => {
   });
 
   test("an Absent Field shows its default as Ghost text, never as a value", () => {
-    const mode = rendered().querySelector<HTMLElement>('[data-path="mode"] .field-value');
-    expect(mode?.classList.contains("ghost")).toBe(true);
-    expect(mode?.textContent).toBe('"dev"');
+    const mode = rendered().querySelector<HTMLElement>('[data-path="mode"] .control');
+    expect(mode?.querySelector(".ghost")?.textContent).toContain("dev");
+    // Two choices is under the menu floor, so `mode` is a radio group and "inherited" is one
+    // of its choices rather than a separate Unset button (ADR 0003).
+    const inherited = mode?.querySelector<HTMLInputElement>('input[value="inherited"]');
+    expect(inherited?.checked).toBe(true);
   });
 
   test("an Invalid Field renders the literal and the validator's own message", () => {
     const port = rendered().querySelector<HTMLElement>('[data-path="port"]');
-    expect(port?.querySelector(".field-value")?.textContent).toContain("99999");
+    // The range input clamps to the Schema's maximum; the exact number beside it must not,
+    // or an out-of-range value would look like a legal one.
+    expect(port?.querySelector<HTMLInputElement>('input[type="number"]')?.value).toBe("99999");
+    expect(port?.querySelector(".control")?.classList.contains("invalid")).toBe(true);
     expect(port?.querySelector(".violation")?.textContent).toMatch(/65535/);
   });
 

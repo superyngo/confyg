@@ -53,6 +53,29 @@ fn an_intent_crosses_the_boundary_and_writes() {
 }
 
 #[test]
+fn the_web_hosts_own_intent_json_is_accepted_verbatim() {
+    // The exact strings `web/src/main.ts`'s `session` builds, byte for byte: a widget hands
+    // over a JSON literal, the host parses it into a `value`, and `SetterIntent` is
+    // internally tagged. A renamed tag here is a host that silently stops writing.
+    let mut h = handle_with(
+        json!({"properties":{"host":{"type":"string","default":"localhost"}}}),
+        "host = \"a\"\n",
+    );
+    let set: Value = serde_json::from_str(&dispatch(
+        &mut h,
+        r#"{"intent":{"kind":"setValue","path":[{"Key":"host"}],"value":"b"}}"#,
+    ))
+    .expect("snapshot");
+    assert_eq!(set["text"], "host = \"b\"\n", "{set}");
+    let unset: Value = serde_json::from_str(&dispatch(
+        &mut h,
+        r#"{"intent":{"kind":"unset","path":[{"Key":"host"}]}}"#,
+    ))
+    .expect("snapshot");
+    assert_eq!(unset["text"], "", "an Unset removes the key (ADR 0003)");
+}
+
+#[test]
 fn live_checks_use_the_validators_own_engine() {
     // `fancy-regex` accepts a lookahead Rust's `regex` rejects; the form must agree with the
     // validator rather than with a second-guess implementation.

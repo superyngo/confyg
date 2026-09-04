@@ -114,16 +114,63 @@ body {
   min-width: 12rem;
   color: var(--muted);
 }
-.field-value {
+/* The control the widget registry mounted. `.field-literal` is a display-only value, so it
+   is the one place a value is text rather than an input. */
+.control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+.control input,
+.control select,
+.control textarea {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: var(--hit);
+  padding: 0 6px;
+}
+.control input[type="range"] {
+  padding: 0;
+}
+.control input[type="number"] {
+  width: 8rem;
+}
+.field-literal {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
-.field-value.ghost {
+.ghost {
   color: var(--ghost);
   font-style: italic;
 }
-.field-value.invalid {
-  color: var(--violation);
+/* The state of the value, not of the message: `.violation` styles the text that explains it. */
+.control.invalid input,
+.control.invalid select {
+  border-color: var(--violation);
+}
+.choice {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.unset {
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: var(--hit);
+}
+.unset:disabled {
+  opacity: 0.5;
+}
+.degrade {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--faint);
 }
 .raw-preview {
   margin: 2px 0 2px var(--indent);

@@ -3,9 +3,9 @@
 // serve a tree editor whose row model is a value/type pair, and ADR 0002 keeps the two
 // apart.
 //
-// Field controls are Task 18's widget registry; this file owns everything around them:
-// sections, headings, group and repeat containers, and the Presence-independent chrome
-// (required marker, deprecated badge, description, violations).
+// Field controls come from the widget registry (`widgets/index.ts`); this file owns
+// everything around them: sections, headings, group and repeat containers, and the
+// Presence-independent chrome (required marker, deprecated badge, description, violations).
 import { partition, type Partition, type Section } from "./partition.js";
 import { t } from "./i18n.js";
 import {
@@ -18,8 +18,14 @@ import {
   type SetterSnapshot,
   type Violation,
 } from "./types.js";
+import { mount, type Ctx } from "./widgets/index.js";
 
-export function render(snapshot: SetterSnapshot, root: HTMLElement): void {
+// The host renders one document at a time, so the session the controls write to is ambient
+// rather than threaded through every layout function.
+let active: Ctx = { set: () => {}, unset: () => {} };
+
+export function render(snapshot: SetterSnapshot, root: HTMLElement, ctx?: Ctx): void {
+  if (ctx) active = ctx;
   const plan = partition(snapshot.ir);
   root.replaceChildren(
     plan.kind === "sections" ? sectionsLayout(plan) : scrollLayout(plan),
@@ -128,9 +134,8 @@ function renderRepeat(node: RepeatNode, depth: number): HTMLElement {
   return box;
 }
 
-// The control itself arrives with the widget registry (Task 18). Until then the field is
-// rendered read-only — a shell that shows the wrong value would be worse than one that
-// shows no affordance.
+// The control is the registry's; the row is this file's. A Field is always a labelled row
+// even when the Widget offers nothing to write, so an unwritable value is never invisible.
 function renderField(node: FieldNode): HTMLElement {
   const row = el("div", "node field");
   row.dataset.path = pathText(node.path);
@@ -143,26 +148,12 @@ function renderField(node: FieldNode): HTMLElement {
   if (node.meta.locked) name.append(badge(t("form.badge.locked"), "locked"));
   row.append(name);
 
-  const value = el("div", "field-value");
-  switch (node.presence.kind) {
-    case "absent":
-      value.classList.add("ghost");
-      value.textContent = node.presence.default === undefined || node.presence.default === null
-        ? t("form.presence.unset")
-        : JSON.stringify(node.presence.default);
-      break;
-    case "set":
-      value.textContent = node.presence.literal;
-      break;
-    case "invalid":
-      // `.invalid` is the value's state; `.violation` is reserved for the message, so a
-      // "what is wrong" sweep of the DOM never counts the field twice.
-      value.classList.add("invalid");
-      value.textContent = node.presence.literal;
-      break;
-  }
-  if (node.meta.unit) value.append(badge(node.meta.unit, "unit"));
-  row.append(value, ...chrome(node.meta));
+  const control = mount(node, active);
+  // `.invalid` is the value's state; `.violation` is reserved for the message, so a
+  // "what is wrong" sweep of the DOM never counts the field twice.
+  if (node.presence.kind === "invalid") control.classList.add("invalid");
+  if (node.meta.unit) control.append(badge(node.meta.unit, "unit"));
+  row.append(control, ...chrome(node.meta));
   if (node.presence.kind === "invalid") {
     row.append(...node.presence.violations.map((v) => note(v.message, "violation")));
   }

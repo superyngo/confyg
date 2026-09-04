@@ -216,6 +216,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   A fourth CI job typechecks, tests and builds the bundle. `--example try` gained a `json`
   command so `web/src/render.test.ts` walks a snapshot the real core produced rather than a
   hand-written IR.
+- 2026-09-04 — Phase B, Task 18: the v0.1 widget set. `web/src/widgets/` mounts one control per
+  Widget through a `Record<Widget, Mount>` registry, so an unmapped name is a build error rather
+  than a blank field — `text` (also `textarea`, `masked`, `rawText`), `menu` (also
+  `filterableMenu`, which the Host clamp never lets through), `radio` (also `checkboxSet`),
+  `tristate`, `stepper`, `slider` and `display`. Every widget reaches all three **Presence**
+  states: a control whose own value space can hold the default renders an `inherited` option,
+  one that cannot keeps a separate **Unset** button beside its Ghost text (ADR 0003). A boolean
+  is a three-state select, never a bare checkbox (ADR 0002); a **Locked** or `readOnly` field
+  mounts as display only whatever its Widget; a clamped Widget names the one it was intended to
+  be, from the Chassis lexicon. `render.ts` now delegates the value area to the registry and
+  `main.ts` turns a widget's literal into a `setValue` / `unset` intent, whose exact JSON
+  `confyg-ffi/tests/boundary.rs` pins against the real binary.
+- 2026-09-04 — `FieldMeta` gained `options: Vec<FieldOption>`: the menu family's choices in
+  Schema order, each already carrying its label. The core resolved `menu` and `radio` from
+  `enum` but never passed the values on, so a host had to re-derive them — and would then honor
+  `x-confyg.optionLabels` in one host and not the next.
 
 ### Fixed
 

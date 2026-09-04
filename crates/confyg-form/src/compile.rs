@@ -348,6 +348,7 @@ impl Ctx<'_> {
                 unit: p.unit.clone(),
                 constraints: constraint::extract(f),
                 raw: raw_fallback,
+                options: options(f, p),
             },
             path,
         }
@@ -435,4 +436,32 @@ fn narrowest(keyword: &str, a: &Value, b: &Value) -> Option<Value> {
         _ => return None,
     };
     serde_json::to_value(pick).ok()
+}
+
+/// The menu family's choices: `enum` in Schema order, or the single `const` a display-only
+/// field shows. `x-confyg.optionLabels` is keyed by the value as authored - a plain string
+/// for a string, its JSON otherwise - and an unmatched key labels nothing rather than
+/// warning, exactly as every other Annotation member (vocab).
+fn options(f: &SchemaFacts, p: &Presentation) -> Vec<FieldOption> {
+    let values = match (&f.enum_values, &f.const_value) {
+        (Some(values), _) => values.clone(),
+        (None, Some(value)) => vec![value.clone()],
+        (None, None) => return Vec::new(),
+    };
+    values
+        .into_iter()
+        .map(|value| {
+            let key = match &value {
+                Value::String(s) => s.clone(),
+                other => other.to_string(),
+            };
+            let label = p
+                .option_labels
+                .as_ref()
+                .and_then(|m| m.get(&key))
+                .cloned()
+                .unwrap_or(key);
+            FieldOption { value, label }
+        })
+        .collect()
 }

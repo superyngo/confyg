@@ -62,6 +62,14 @@ export interface FieldMeta extends NodeMeta {
   unit: string | null;
   constraints: Constraint[];
   raw: boolean;
+  // Already labelled by the core: a host that re-derived these from `enum` would honor
+  // `x-confyg.optionLabels` in one host and not the next.
+  options: FieldOption[];
+}
+
+export interface FieldOption {
+  value: unknown;
+  label: string;
 }
 
 export type Presence =

@@ -22,9 +22,13 @@ is not restated here.
 - `confyg_session::session::Session::check(path, literal) -> Vec<Violation>` — a live check for an
   uncommitted buffer, through the *validator's* engine so warnings cannot disagree with it.
 - `confyg_ffi::{dispatch, check}` — the same two calls, JSON in, JSON out.
-- `web/src/render.ts` `render(snapshot, root)` — the whole host-side entry point.
+- `web/src/render.ts` `render(snapshot, root, ctx)` — the whole host-side entry point.
   `web/src/partition.ts` `partition(ir)` cuts the tree into screens (presentation §5.1); fewer
   than three depth-1 **Groups** falls back to `scroll`.
+- `web/src/widgets/index.ts` `mount(field, ctx) -> HTMLElement` — the control for one Field,
+  from a `Record<Widget, Mount>` keyed by the closed vocabulary, so an unmapped Widget is a
+  build error. A **Locked** or `readOnly` field mounts as display only whatever its Widget.
+  `ctx.set` takes a **JSON literal** — `rawText` alone hands over bytes as authored.
 
 ## Index spaces, restated once
 
@@ -54,6 +58,7 @@ Four CI jobs, each pinning an invariant rather than a style:
 | `confyg-session/tests/write_neutrality.rs` | Eleven Annotations x four Host profiles x three formats produce identical bytes |
 | `web/src/partition.test.ts` | The `sections` floor, and that only depth-1 Groups become sections |
 | `web/src/render.test.ts` | The shell walked over a snapshot the real core produced (`--example try`, `json`) |
+| `web/src/widgets/presence.test.ts` | Every Widget reaches all three Presence states, a boolean is three-state, a Locked node has no write affordance |
 
 One test is `#[ignore]`d on purpose: `a_delete_keeps_the_blank_line_that_separates_a_comment_block`
 asserts the bytes upstream bill item 3 will make possible. `cargo test -- --ignored` shows what is
