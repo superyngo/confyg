@@ -6,7 +6,7 @@ once approved, dated by when it was written, never rewritten. Current behavior l
 
 ## In progress
 
-_None._
+- [2026-09-05-touch-desktop-split.md](2026-09-05-touch-desktop-split.md) — `Draft`
 
 ## Landed
 

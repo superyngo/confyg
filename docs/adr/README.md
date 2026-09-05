@@ -11,6 +11,7 @@ Current behavior lives in [`../reference/`](../reference/README.md).
 | [0003](0003-form-ir-shape-presence-scope-and-default-equivalence.md) | Presence stays a Field concept while containers carry Occupancy; a scalar array is a Repeat group; setting a value equal to the default is Unset | Proposed |
 | [0004](0004-presentation-layer-model-and-write-neutrality.md) | Eight presentation layers with Emission style and Conduct closed; Write-neutrality is an invariant; Flow never gates on validity; host capability clamps at compile time | Proposed |
 | [0005](0005-presentation-profile-as-a-second-carrier.md) | One Presentation vocabulary with two carriers — an `x-confyg` Annotation and an optional Presentation profile sidecar; supersedes the glossary's rejection of a separate UI-schema file | Proposed |
+| [0006](0006-touch-desktop-dedicated-entry.md) | Touch gets a dedicated entry (`touch.html` + `web/src/touch/`), not a `pointer: coarse`/`data-nav` bolt-on; core and business logic stay shared, only page chrome forks | Proposed |
 
 Volatile facts an ADR happens to quote — a dependency pin, a line count, an upstream API shape —
 are corrected in [`../reference/upstream.md`](../reference/upstream.md), not by editing the ADR.

@@ -324,6 +324,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `partition.test.ts` updated for the new floor. Verified with `tsc --noEmit`, the full
   `vitest` suite (37 tests), a production `vite build`, and both real-binary Playwright e2e
   tests against the built bundle.
+- 2026-09-05 — Evaluated splitting the touch entry from desktop after shipping the settings-
+  template redesign's `pointer: coarse`/`data-nav="push"` bolt-on — the exact anti-pattern
+  `wens-dev-principles ui 2` names and confy (this project's upstream sibling) already tried and
+  reverted. Added ADR 0006 (touch gets a dedicated entry, `touch.html` + `web/src/touch/`, routed
+  by a pointer-capability check; core and business-logic modules stay shared verbatim, only page
+  chrome forks behind a `ShellHost` interface; no third-party UI framework) and the companion
+  `docs/spec/2026-09-05-touch-desktop-split.md`: a module-by-module shared/reused/independent
+  classification of every `web/src/` file, the target file tree, and seven migration phases —
+  including closing the gap where `confyg-form`'s already-implemented and tested
+  `Density::Touch` (`affordance.rs`, `write_neutrality.rs`) is unreachable because
+  `confyg-ffi::Handle::new()` hardcodes `Density::Desktop`. Status: Draft/Proposed, pending
+  confirmation before implementation.
 
 ### Fixed
 
