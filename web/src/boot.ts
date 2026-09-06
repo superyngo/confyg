@@ -10,12 +10,14 @@ import { render, reveal, type HostCtx } from "./render.js";
 import { resultList } from "./search.js";
 import type { ShellHost } from "./shell-host.js";
 
-/** The four elements every host entry's markup provides under these ids. */
+/** The four elements every host entry's markup provides under these ids, plus which
+ * `confyg-ffi::Handle` constructor to load with (spec §6/§8.6 — desktop omits this). */
 export interface BootRefs {
   root: HTMLElement;
   openInput: HTMLInputElement;
   searchInput: HTMLInputElement;
   results: HTMLElement;
+  density?: "phone" | "touch";
 }
 
 /** The subset of the `Shell`/`TouchShell` surface `boot()` itself needs to call directly. */
@@ -26,7 +28,7 @@ export interface BootHost extends ShellHost {
 }
 
 export async function boot(refs: BootRefs, host: BootHost): Promise<void> {
-  const { root, openInput, searchInput, results } = refs;
+  const { root, openInput, searchInput, results, density } = refs;
 
   let boundary: Boundary | null = null;
   let fmt: DocFormat = "Toml";
@@ -145,7 +147,7 @@ export async function boot(refs: BootRefs, host: BootHost): Promise<void> {
     );
   });
 
-  boundary = await Boundary.load();
+  boundary = await Boundary.load(density);
 
   // A fresh page opens the built-in sample rather than an empty pane, so the form is
   // something to look at before any file exists. Two dispatches, in this order: the Schema

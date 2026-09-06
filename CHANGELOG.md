@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 2026-09-06 — Touch/desktop entry split plan, Task 5: wired `Density::Touch` through
+  `confyg-ffi` and `boundary.ts`. `crates/confyg-ffi::Handle` gains `with_density(density: &str)`
+  (`js_name = withDensity`; `"phone"`/`"touch"`, else Desktop), keeping `Handle::new()`'s
+  existing Desktop-default constructor untouched; only `density` varies from Desktop's
+  `HostProfile` — `can_mask`/`can_slide`/`can_filter_options` stay `true`/`true`/`false` (spec
+  §6/§8.6). `confyg-ffi` gained a direct `confyg-form` dependency for `Density`/`HostProfile`.
+  `web/src/boundary.ts`'s `Boundary.load(density?)` calls `Handle.withDensity(...)` when given;
+  `boot.ts`'s `BootRefs` gained an optional `density` field; `web/src/touch/main.ts` passes
+  `density: "touch"`, desktop's `main.ts` passes nothing (unchanged). `cargo test -p
+  confyg-session --test write_neutrality` passes. Built the real WASM and manually verified
+  both entries load it with zero console errors, sample's 22 fields render identically on both.
 - 2026-09-06 — Touch/desktop entry split plan, Task 3: split the shell and the stylesheet.
   Extracted `main.ts`'s host-agnostic boot logic (Boundary load, `HostCtx` wiring, save/open/
   schema/search glue) into a new shared `web/src/boot.ts`; `web/src/main.ts` (desktop) and new

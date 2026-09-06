@@ -135,6 +135,7 @@ name = "confyg-ffi"
 version = "0.1.0"
 dependencies = [
  "confy-core",
+ "confyg-form",
  "confyg-session",
  "getrandom 0.3.4",
  "serde",

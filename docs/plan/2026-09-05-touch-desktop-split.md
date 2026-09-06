@@ -1,5 +1,5 @@
 # Touch/desktop entry split — implementation plan
-Status: In progress — 4/7 tasks
+Status: In progress — 5/7 tasks
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `subagent-driven-development` (recommended) or
 > `executing-plans` to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for
@@ -138,7 +138,8 @@ is visible in both shells.
 ## Task 5: Wire `Density::Touch` through `confyg-ffi` and `boundary.ts`
 
 **Files:**
-- Edit: `crates/confyg-ffi/src/lib.rs`, `web/src/boundary.ts`, `web/src/touch/main.ts`
+- Edit: `crates/confyg-ffi/src/lib.rs`, `crates/confyg-ffi/Cargo.toml`, `web/src/boundary.ts`,
+  `web/src/boot.ts`, `web/src/touch/main.ts`
 
 **Interfaces:**
 - Produces: `confyg-ffi::Handle` gains a second constructor (or constructor argument) accepting a
@@ -147,18 +148,24 @@ is visible in both shells.
   per spec §8.6. Real touch-appropriate values for those three are explicitly out of scope here.
 - Consumes: `confyg-form::affordance::{Density, HostProfile}` (already implemented/tested).
 
-- [ ] **Step 1:** Add the `HostProfile`-accepting constructor to `confyg-ffi::Handle`, keeping
-      `Handle::new()`'s existing `Density::Desktop` default constructor untouched so desktop's
-      call site needs zero changes.
-- [ ] **Step 2:** `boundary.ts`'s `Boundary.load()` takes an optional profile parameter; desktop
-      passes nothing (unchanged), `web/src/touch/main.ts` passes `Density::Touch` with the other
-      three flags matching Desktop's values.
-- [ ] **Step 3:** Run `cargo test -p confyg-session write_neutrality` — must still pass (proves
+- [x] **Step 1:** Added `Handle::with_density(density: &str) -> Handle` (`js_name = withDensity`)
+      to `confyg-ffi::Handle`, keeping `Handle::new()`'s existing `Density::Desktop` default
+      constructor untouched so desktop's call site needs zero changes. `confyg-ffi` gained a
+      direct `confyg-form` dependency (`Cargo.toml`) since `Density`/`HostProfile` weren't
+      re-exported through `confyg-session`.
+- [x] **Step 2:** `boundary.ts`'s `Boundary.load(density?)` takes an optional `"phone" | "touch"`
+      parameter, calling `Handle.withDensity(density)` when given, `new Handle()` otherwise;
+      `boot.ts`'s `BootRefs` gained an optional `density` field threaded through. Desktop's
+      `main.ts` passes nothing (unchanged); `web/src/touch/main.ts` passes `density: "touch"`.
+- [x] **Step 3:** `cargo test -p confyg-session --test write_neutrality` passes (proves
       `Density` cannot change written bytes, so this cannot regress Write-neutrality per ADR
       0004, spec §6).
-- [ ] **Step 4:** Manually verify touch entry loads with `Density::Touch` wired (no visible
-      behavior change expected yet, since the other three flags are unchanged from Desktop).
-- [ ] Commit: code + CHANGELOG entry.
+- [x] **Step 4:** Built the real WASM (`wasm-pack build crates/confyg-ffi --target web`) and
+      manually verified both entries load it with zero console errors and render the sample's
+      22 fields identically — `Handle::new()` (desktop) and `Handle.withDensity("touch")`
+      (touch) both work; no visible behavior change, as expected since the other three
+      `HostProfile` flags are unchanged from Desktop.
+- [x] Commit: code + CHANGELOG entry.
 
 ## Task 6: Add Playwright coverage for the touch entry
 

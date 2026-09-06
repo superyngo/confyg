@@ -9,6 +9,7 @@ void boot(
     openInput: document.getElementById("open") as HTMLInputElement,
     searchInput: document.getElementById("search") as HTMLInputElement,
     results: document.getElementById("results") as HTMLElement,
+    density: "touch",
   },
   touchShell,
 );

@@ -10,7 +10,7 @@ const GLUE = "../../crates/confyg-ffi/pkg/confyg_ffi.js";
 
 interface Glue {
   default: (input?: unknown) => Promise<unknown>;
-  Handle: new () => object;
+  Handle: (new () => object) & { withDensity: (density: string) => object };
   dispatch: (handle: object, requestJson: string) => string;
   check: (handle: object, pathJson: string, literal: string) => string;
   search: (handle: object, query: string) => string;
@@ -22,10 +22,17 @@ export class Boundary {
     private readonly handle: object,
   ) {}
 
-  static async load(): Promise<Boundary> {
+  /**
+   * `density` selects the `confyg-ffi::Handle` constructor: omitted (desktop, the default) uses
+   * `new Handle()`; `"touch"`/`"phone"` uses `Handle.withDensity(...)`. Only `density` varies —
+   * the other three `HostProfile` flags are unchanged from Desktop's (spec
+   * `2026-09-05-touch-desktop-split.md` §6/§8.6).
+   */
+  static async load(density?: "phone" | "touch"): Promise<Boundary> {
     const glue = (await import(/* @vite-ignore */ GLUE)) as Glue;
     await glue.default();
-    return new Boundary(glue, new glue.Handle());
+    const handle = density ? glue.Handle.withDensity(density) : new glue.Handle();
+    return new Boundary(glue, handle);
   }
 
   /** A `Request` in, a `SetterSnapshot` out. A malformed request comes back in the envelope. */

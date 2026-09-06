@@ -8,6 +8,7 @@
 //! (presentation §5.3), so the Web and TUI cannot rank the same query differently.
 
 use confy_core::model::node::Path;
+use confyg_form::affordance::{Density, HostProfile};
 use confyg_session::session::{Request, Session, SetterSnapshot};
 use wasm_bindgen::prelude::*;
 
@@ -28,6 +29,28 @@ impl Handle {
     pub fn new() -> Handle {
         Handle {
             session: Session::new(),
+        }
+    }
+
+    /// A second constructor for a non-desktop host. Only `density` varies from
+    /// `Session::new()`'s Desktop default — the other three `HostProfile` flags
+    /// (`can_mask`/`can_slide`/`can_filter_options`) are copied verbatim, since no host has yet
+    /// asked for anything else (spec `2026-09-05-touch-desktop-split.md` §6/§8.6). `density` is
+    /// `"desktop"`, `"phone"`, or `"touch"`; anything else falls back to Desktop.
+    #[wasm_bindgen(js_name = withDensity)]
+    pub fn with_density(density: &str) -> Handle {
+        let density = match density {
+            "phone" => Density::Phone,
+            "touch" => Density::Touch,
+            _ => Density::Desktop,
+        };
+        Handle {
+            session: Session::with_host(HostProfile {
+                can_mask: true,
+                can_slide: true,
+                can_filter_options: false,
+                density,
+            }),
         }
     }
 }
