@@ -1,5 +1,5 @@
 # Touch/desktop entry split — implementation plan
-Status: In progress — 3/7 tasks
+Status: In progress — 4/7 tasks
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `subagent-driven-development` (recommended) or
 > `executing-plans` to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for
@@ -104,26 +104,36 @@ is visible in both shells.
 - Produces: `DesktopShell` and `TouchShell`, both implementing `ShellHost` (Task 1).
 - Consumes: `ShellHost` (Task 1), the extracted `apply()` (Task 0.5).
 
-- [ ] **Step 1:** Extract `main.ts`'s host-agnostic half (Boundary-boot + `HostCtx`-wiring +
-      save/open/schema/search glue) into `boot(refs, shellHost)` in a new `web/src/boot.ts`, per
-      spec §7 Phase 2's original scope note folded in here since `TouchShell` needs it now.
-      `main.ts` (desktop) becomes thin, calling `boot()` with desktop refs + `DesktopShell`.
-- [ ] **Step 2:** Split `shell.ts`'s `wireNav()` media-query branch: `DesktopShell` keeps today's
-      columns default with the branch removed; new `web/src/touch/shell.ts`'s `TouchShell`
-      promotes today's push/back-bar behavior to unconditional. Both implement `ShellHost` and
-      call the Task 0.5 `apply()` function.
-- [ ] **Step 3:** `web/src/touch/main.ts` — thin, touch refs + `TouchShell` into `boot()`.
-- [ ] **Step 4:** `touch.html` drops the touch-bar markup requirement on `index.html`; `index.html`
+- [x] **Step 1:** Extracted `main.ts`'s host-agnostic half (Boundary-boot + `HostCtx`-wiring +
+      save/open/schema/search glue) into `boot(refs, host)` in a new `web/src/boot.ts`.
+      `main.ts` (desktop) is now thin, calling `boot()` with desktop refs + `DesktopShell`.
+- [x] **Step 2:** Split `shell.ts`'s `wireNav()` media-query branch: `DesktopShell` (renamed
+      from `Shell`) sets `data-nav="columns"` unconditionally, branch removed; new
+      `web/src/touch/shell.ts`'s `TouchShell` sets `data-nav="push"` unconditionally. Both
+      implement `ShellHost` and call the Task 0.5 `applyPrefs()`. `TouchShell` duplicates
+      `DesktopShell`'s chrome/appearance/about/pwa methods rather than sharing them — matches
+      spec §4's 獨立實現 classification for `shell.ts`; only `applyPrefs`/`Prefs` (Task 0.5)
+      and the shared `localStorage` prefs key are reused. `TouchShell` drops the
+      narrow-width entry-drawer logic (`measure()`/`ensureDrawerButton()`) — under permanent
+      push nav the entry column is always its own page, never a drawer.
+- [x] **Step 3:** `web/src/touch/main.ts` — thin, touch refs + `TouchShell` into `boot()`.
+- [x] **Step 4:** `touch.html`'s `#touch-bar` is no longer `hidden` by default; `index.html`
       drops its `#touch-bar`/`#touch-back` markup entirely (spec §4's `index.html` row). Both
       keep `#form`, `#toast`, `#results`, `#search`, `#save`, `#open`, `#schema`.
-- [ ] **Step 5:** Factor `style.css`'s shared ~87% (field grid, widgets, summary, search, badges)
-      into a base partial; `style.css` (desktop) and new `web/src/touch/style.css` each
-      `@import` it plus `tokens.css`, then their own unconditional nav/chrome rules — deleting
-      the `data-nav`/`pointer: coarse` conditionals (`style.css:773-888` today).
-- [ ] **Step 6:** Run `tests/e2e/first-run.spec.ts` against `/` — must pass unmodified (no
-      desktop behavior change). Manually verify `/touch.html` now shows push/back-bar chrome by
-      default, no media query involved.
-- [ ] Commit: code + CHANGELOG entry.
+- [x] **Step 5:** Factored `style.css`'s shared layout into `web/src/base.css`; `style.css`
+      (desktop) now just `@import`s `tokens.css` + `base.css` — desktop needed no unconditional
+      nav rules of its own, since `base.css`'s default `.form-shell` layout already *is*
+      desktop's columns behavior. New `web/src/touch/style.css` `@import`s `../tokens.css` +
+      `../base.css` plus the former `body[data-nav="push"]`-conditional block, rewritten
+      unconditional (selectors no longer prefixed). `prefers-reduced-motion` stayed in
+      `base.css`, shared.
+- [x] **Step 6:** `tests/e2e/first-run.spec.ts` passes unmodified against `/` (chromium desktop
+      project) — no desktop behavior change. Manually verified `/touch.html` with a
+      coarse-pointer Playwright context: `body.dataset.nav === "push"` immediately (no
+      `matchMedia` call in `TouchShell.wireNav()`), `#touch-bar` visible, 22 sample fields
+      render, tapping a section pushes `data-page="detail"` and the back button returns to
+      `"list"`, zero console errors.
+- [x] Commit: code + CHANGELOG entry.
 
 ## Task 5: Wire `Density::Touch` through `confyg-ffi` and `boundary.ts`
 

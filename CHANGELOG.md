@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 2026-09-06 — Touch/desktop entry split plan, Task 3: split the shell and the stylesheet.
+  Extracted `main.ts`'s host-agnostic boot logic (Boundary load, `HostCtx` wiring, save/open/
+  schema/search glue) into a new shared `web/src/boot.ts`; `web/src/main.ts` (desktop) and new
+  `web/src/touch/main.ts` are now thin, each calling `boot()` with their own refs and shell.
+  `web/src/shell.ts`'s `Shell` renamed `DesktopShell`, its `wireNav()` media-query branch
+  removed in favor of an unconditional `data-nav="columns"`; new `web/src/touch/shell.ts`'s
+  `TouchShell` sets `data-nav="push"` unconditionally (both classes independent, per spec §4's
+  獨立實現 classification — only `applyPrefs`/`Prefs`, Task 0.5, and the shared prefs key are
+  reused). `index.html` drops its `#touch-bar`/`#touch-back` markup; `touch.html`'s `#touch-bar`
+  is no longer `hidden`. `web/src/style.css`'s shared layout moved to new `web/src/base.css`;
+  `style.css` (desktop) now just imports `tokens.css` + `base.css`; new
+  `web/src/touch/style.css` imports the same two plus the former `body[data-nav="push"]`
+  block, rewritten unconditional. `tests/e2e/first-run.spec.ts` passes unmodified against `/`;
+  `/touch.html` manually verified with a coarse-pointer context (push nav active immediately,
+  22 sample fields render, section tap/back-button navigation works, zero console errors).
 - 2026-09-06 — Touch/desktop entry split plan, Task 2: added the entry router —
   `web/public/entry-desktop.js`/`web/public/entry-touch.js` implement the reverse-guard pattern
   (`matchMedia("(pointer: coarse)")` default, undocumented dev-only `?ui=` override per spec

@@ -48,7 +48,7 @@ export function applyPrefs(prefs: Prefs): void {
   }
 }
 
-class Shell {
+class DesktopShell {
   private prefs = read();
   private dirty = false;
   private install: Event | null = null;
@@ -153,20 +153,10 @@ class Shell {
   // ---------- adaptation ----------
 
   private wireNav(): void {
-    const coarse = window.matchMedia("(pointer: coarse)");
-    const narrow = window.matchMedia("(max-width: 720px)");
-    const decide = (): void => {
-      document.body.dataset.nav = coarse.matches || narrow.matches ? "push" : "columns";
-      document.body.dataset.page = this.page;
-      const bar = document.getElementById("touch-bar");
-      if (bar) bar.hidden = document.body.dataset.nav !== "push";
-      this.measure();
-    };
-    coarse.addEventListener("change", decide);
-    narrow.addEventListener("change", decide);
+    document.body.dataset.nav = "columns";
+    document.body.dataset.page = this.page;
     window.addEventListener("resize", () => this.measure());
-    document.getElementById("touch-back")?.addEventListener("click", () => this.showList());
-    decide();
+    this.measure();
   }
 
   /**
@@ -237,7 +227,6 @@ class Shell {
   sectionShown(title: string): void {
     const label = document.getElementById("touch-title");
     if (label) label.textContent = title;
-    if (document.body.dataset.nav === "push") this.showDetail();
   }
 
   // ---------- the application's own settings ----------
@@ -397,4 +386,4 @@ class Shell {
   }
 }
 
-export const shell = new Shell();
+export const shell = new DesktopShell();

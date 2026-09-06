@@ -1,0 +1,107 @@
+/* Touch entry stylesheet: the shared layout, plus the pushed-page shell's own chrome and
+   nav rules, unconditional — the entry router already decided this window is touch, so
+   there is no `body[data-nav="push"]`/`pointer: coarse` selector left to gate on (spec §7
+   Phase 3). The same DOM as desktop: `touch/shell.ts` sets which page is on top; nothing is
+   re-rendered, so a section keeps its scroll position and its focus. */
+@import "../tokens.css";
+@import "../base.css";
+
+.touch-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 0 8px;
+  min-height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.touch-bar .back {
+  min-height: var(--hit);
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+.touch-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.15em;
+  font-weight: 600;
+}
+.form-shell {
+  flex-direction: column;
+}
+.section-list {
+  width: 100%;
+  border-right: 0;
+  padding: 12px;
+}
+.section-tab {
+  min-height: 52px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+}
+.section-tab + .section-tab {
+  border-top: 0;
+}
+.section-tab::after {
+  content: "\203A";
+  color: var(--faint);
+}
+.entry-column,
+.section-detail {
+  width: 100%;
+  border-right: 0;
+}
+/* One page at a time: the list, or the pushed section. */
+body[data-page="detail"] .section-list,
+body[data-page="list"] .section-detail,
+body[data-page="list"] .entry-column {
+  display: none;
+}
+/* Label above control, and the row itself is the long-press target for the row menu. */
+.node.field {
+  grid-template-columns: minmax(90px, 40%) minmax(0, 1fr);
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.field-label {
+  grid-column: 1;
+  font-size: 1.05em;
+  cursor: default;
+}
+.control {
+  grid-column: 2;
+  justify-content: flex-end;
+}
+.control input[type="text"],
+.control input[type="number"],
+.control input[type="password"] {
+  text-align: right;
+}
+.row-menu-button {
+  display: none;
+}
+.node.field > .description,
+.node.field > .violation {
+  grid-column: 1 / -1;
+}
+/* The row menu becomes a sheet. */
+.row-menu {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  min-width: 0;
+  border-radius: 20px;
+}
+.row-menu button {
+  min-height: 52px;
+  font-size: 1.05em;
+}
