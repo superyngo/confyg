@@ -10,7 +10,7 @@ A plan shares its kebab title with the spec it derives from, so the pair matches
 
 | Date | Document | Status |
 |---|---|---|
-| 2026-09-05 | [touch/desktop entry split](2026-09-05-touch-desktop-split.md) | Not started — 0/7 tasks |
+| 2026-09-05 | [touch/desktop entry split](2026-09-05-touch-desktop-split.md) | In progress — 1/7 tasks |
 
 ## Landed
 

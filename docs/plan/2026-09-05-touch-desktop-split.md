@@ -1,5 +1,5 @@
 # Touch/desktop entry split — implementation plan
-Status: Not started
+Status: In progress — 1/7 tasks
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `subagent-driven-development` (recommended) or
 > `executing-plans` to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for
@@ -34,11 +34,11 @@ is visible in both shells.
   `textScale`/`lang` to the DOM, callable without a full `Shell` instance, for `DesktopShell` and
   `TouchShell` (Task 3) to both call.
 
-- [ ] **Step 1:** Extract today's `Shell.apply()` body into a function taking the DOM refs/prefs
+- [x] **Step 1:** Extract today's `Shell.apply()` body into a function taking the DOM refs/prefs
       it needs as parameters, not `this`. `Shell.apply()` becomes a thin wrapper calling it.
-- [ ] **Step 2:** Run `tests/e2e/first-run.spec.ts` — must pass unmodified; no visible behavior
+- [x] **Step 2:** Run `tests/e2e/first-run.spec.ts` — must pass unmodified; no visible behavior
       change on desktop.
-- [ ] Commit: code + CHANGELOG entry. Do not touch `host-io.ts`'s dead `initTheme`/`toggleTheme` —
+- [x] Commit: code + CHANGELOG entry. Do not touch `host-io.ts`'s dead `initTheme`/`toggleTheme` —
       out of scope (spec §7 Phase 0.5 note).
 
 ## Task 1: Decouple `render.ts`/`main.ts` from the concrete `shell` singleton

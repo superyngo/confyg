@@ -12,7 +12,7 @@ type Pane = "appearance" | "about" | "pwa";
 
 const PREFS = "confyg.prefs";
 
-interface Prefs {
+export interface Prefs {
   theme: "system" | "light" | "dark";
   /** Control height in px, 28–52. Presentation only; never written to the document. */
   rowHeight: number;
@@ -29,6 +29,22 @@ function read(): Prefs {
     return raw ? { ...fallback, ...(JSON.parse(raw) as Partial<Prefs>) } : { ...fallback };
   } catch {
     return { ...fallback };
+  }
+}
+
+/** Write the presentation prefs as tokens. Nothing here touches the document beyond that. */
+export function applyPrefs(prefs: Prefs): void {
+  const root = document.documentElement;
+  const dark =
+    prefs.theme === "system" ? window.matchMedia("(prefers-color-scheme: dark)").matches : prefs.theme === "dark";
+  root.dataset.theme = dark ? "dark" : "light";
+  root.style.setProperty("--row-h", prefs.rowHeight + "px");
+  root.style.setProperty("--font-scale", String(prefs.textScale));
+  root.lang = prefs.lang;
+  try {
+    localStorage.setItem(PREFS, JSON.stringify(prefs));
+  } catch {
+    /* A private window still gets a working session, just no memory of it. */
   }
 }
 
@@ -54,20 +70,7 @@ class Shell {
 
   /** Write the presentation prefs as tokens. Nothing here touches the document. */
   private apply(): void {
-    const root = document.documentElement;
-    const dark =
-      this.prefs.theme === "system"
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-        : this.prefs.theme === "dark";
-    root.dataset.theme = dark ? "dark" : "light";
-    root.style.setProperty("--row-h", this.prefs.rowHeight + "px");
-    root.style.setProperty("--font-scale", String(this.prefs.textScale));
-    root.lang = this.prefs.lang;
-    try {
-      localStorage.setItem(PREFS, JSON.stringify(this.prefs));
-    } catch {
-      /* A private window still gets a working session, just no memory of it. */
-    }
+    applyPrefs(this.prefs);
   }
 
   private set<K extends keyof Prefs>(key: K, value: Prefs[K]): void {

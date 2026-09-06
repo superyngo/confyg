@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 2026-09-06 — Touch/desktop entry split plan, Task 0.5: extracted `web/src/shell.ts`'s
+  `Shell.apply()` preference-application body into a standalone exported `applyPrefs(prefs)`
+  function (with `Prefs` now exported too), so a future `TouchShell` can share it without a
+  `Shell` instance; `Shell.apply()` is now a thin wrapper. `tests/e2e/first-run.spec.ts` passes
+  unmodified.
 - 2026-09-03 — Repository initialized: documentation layout per `wens-dev-principles docs`
   (root `CONTEXT.md` index, `docs/{reference,adr,spec,plan,debug,audit,tmp}/` with indexes),
   `docs/reference/glossary.md` as the canonical vocabulary, ADR 0001 (`confy-core` as a pinned
