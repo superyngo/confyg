@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 2026-09-06 — Touch/desktop entry split plan, Task 1: added `web/src/shell-host.ts`'s
+  `ShellHost` interface (`afterRender`/`showDetail`/`sectionShown`/`closeEntryDrawer`) and
+  decoupled `web/src/render.ts` from importing the concrete `shell` singleton directly — it now
+  takes an optional `host: ShellHost` on `render()`, mirroring the existing `HostCtx`
+  module-level-singleton pattern; `web/src/main.ts` passes its `shell` singleton in as the host.
+  `tests/e2e/first-run.spec.ts` passes unmodified.
 - 2026-09-06 — Touch/desktop entry split plan, Task 0.5: extracted `web/src/shell.ts`'s
   `Shell.apply()` preference-application body into a standalone exported `applyPrefs(prefs)`
   function (with `Prefs` now exported too), so a future `TouchShell` can share it without a

@@ -36,7 +36,7 @@ function show(snapshot: SnapshotOrError): void {
     return;
   }
   text = snapshot.text;
-  render(snapshot, root, session);
+  render(snapshot, root, session, shell);
 }
 
 // The controls' one way to write: a literal in, an intent out, and the snapshot that comes

@@ -1,5 +1,5 @@
 # Touch/desktop entry split — implementation plan
-Status: In progress — 1/7 tasks
+Status: In progress — 2/7 tasks
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `subagent-driven-development` (recommended) or
 > `executing-plans` to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for
@@ -52,17 +52,19 @@ is visible in both shells.
 - Consumes: nothing new — `web/src/shell.ts`'s existing `Shell` class must satisfy `ShellHost`
   structurally (or via an explicit `implements`) without changing its own behavior.
 
-- [ ] **Step 1:** Write `shell-host.ts` with the 4-method interface, typed from today's call
+- [x] **Step 1:** Write `shell-host.ts` with the 4-method interface, typed from today's call
       sites (`render.ts:70,92,116,213` per spec §4's `render.ts` row).
-- [ ] **Step 2:** Thread a `ShellHost` parameter alongside `HostCtx` through
-      `renderNode`/`renderGroup`/`renderField`/`renderRepeat`/`appendChildren`/`entryColumn`/
-      `entryLabel`/`scrollLayout`/`sectionsLayout`/`detailFor` (spec §4's `render.ts` row lists
-      these — none of their own logic changes, only how they reach `ShellHost`).
-- [ ] **Step 3:** `main.ts` passes its concrete `shell` singleton as the `ShellHost` argument
+- [x] **Step 2:** Threaded `ShellHost` alongside `HostCtx` via `render()`'s existing
+      module-level-singleton pattern (mirrors how `HostCtx` itself already reaches
+      `renderNode`/`renderField`/etc. through the module-level `active`, not per-call
+      parameters) — a `host?: ShellHost` param on `render()` sets a module-level `activeHost`,
+      which `reveal`/`scrollLayout`/`sectionsLayout` etc. read instead of the removed
+      `appShell` import. None of their own logic changed, only how they reach `ShellHost`.
+- [x] **Step 3:** `main.ts` passes its concrete `shell` singleton as the `ShellHost` argument
       instead of `render.ts` importing it directly.
-- [ ] **Step 4:** Run `tests/e2e/first-run.spec.ts` — must pass unmodified (spec §7 Phase 1
+- [x] **Step 4:** Run `tests/e2e/first-run.spec.ts` — must pass unmodified (spec §7 Phase 1
       explicit acceptance).
-- [ ] Commit: code + CHANGELOG entry.
+- [x] Commit: code + CHANGELOG entry.
 
 ## Task 2: Add the entry router
 

@@ -21,7 +21,7 @@ import { partition, type Partition, type Section } from "./partition.js";
 import { renderRepeat as renderRepeatCards } from "./repeat.js";
 import { attachLongPress, rowMenuButton, schemaText } from "./rowmenu.js";
 import { sectionFor } from "./search.js";
-import { shell as appShell } from "./shell.js";
+import type { ShellHost } from "./shell-host.js";
 import { renderSummary } from "./summary.js";
 import {
   pathText,
@@ -52,14 +52,27 @@ let active: HostCtx = {
   toggleGroup: () => {},
 };
 
+let activeHost: ShellHost = {
+  afterRender: () => {},
+  showDetail: () => {},
+  sectionShown: () => {},
+  closeEntryDrawer: () => {},
+};
+
 let current: { root: HTMLElement; plan: Partition; show: ((key: string) => void) | null } | null =
   null;
 
 /** Which entry of a Repeat section is showing, by Repeat path. Survives a re-render. */
 const chosenEntry = new Map<string, number>();
 
-export function render(snapshot: SetterSnapshot, root: HTMLElement, ctx?: HostCtx): void {
+export function render(
+  snapshot: SetterSnapshot,
+  root: HTMLElement,
+  ctx?: HostCtx,
+  host?: ShellHost,
+): void {
   if (ctx) active = ctx;
+  if (host) activeHost = host;
   const plan = partition(snapshot.ir);
   current = { root, plan, show: null };
   const body = plan.kind === "sections" ? sectionsLayout(plan) : scrollLayout(plan);
@@ -67,7 +80,7 @@ export function render(snapshot: SetterSnapshot, root: HTMLElement, ctx?: HostCt
   root.dataset.partition = plan.kind;
   // The chrome reads the rendered document rather than the snapshot: one source of truth
   // for "what is wrong", and it is the thing the user can actually see.
-  appShell.afterRender();
+  activeHost.afterRender();
 }
 
 /**
@@ -89,7 +102,7 @@ export function reveal(path: string): void {
   }
   target.classList.add("revealed");
   // In the pushed shell the section is a page of its own; showing a field means being on it.
-  appShell.showDetail();
+  activeHost.showDetail();
 }
 
 // `scroll`: one page, and a section is its Group's own heading.
@@ -113,7 +126,7 @@ function sectionsLayout(plan: Partition): HTMLElement {
     for (const b of list.querySelectorAll("button")) {
       b.setAttribute("aria-current", String(b.dataset.section === section.key));
     }
-    appShell.sectionShown(section.title);
+    activeHost.sectionShown(section.title);
   };
 
   for (const section of plan.sections) {
@@ -210,7 +223,7 @@ function entryColumn(repeat: RepeatNode, index: number): HTMLElement {
       const plan = current?.plan;
       const section = plan?.sections.find((s) => s.repeat === repeat);
       if (detail && section) detail.replaceChildren(...detailFor(section));
-      appShell.closeEntryDrawer();
+      activeHost.closeEntryDrawer();
     });
     box.append(tab);
   });
