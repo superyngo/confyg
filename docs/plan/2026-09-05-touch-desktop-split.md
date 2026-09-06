@@ -1,5 +1,5 @@
 # Touch/desktop entry split — implementation plan
-Status: In progress — 5/7 tasks
+Status: In progress — 6/7 tasks
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `subagent-driven-development` (recommended) or
 > `executing-plans` to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for
@@ -170,21 +170,30 @@ is visible in both shells.
 ## Task 6: Add Playwright coverage for the touch entry
 
 **Files:**
-- Edit: `web/playwright.config.ts`
+- Edit: `playwright.config.ts` (repo root, not `web/`), `web/src/touch/style.css`
 - Create: none — full parity, not a separate touch-only spec file (spec §7 Phase 6 / §8 grill
   decision)
 
 **Interfaces:**
-- Produces: a second Playwright project (mobile viewport) alongside today's `chromium` desktop
-  project.
-- Consumes: `tests/e2e/first-run.spec.ts` unmodified — runs against both projects because spec §4
-  guarantees identical element ids (`#form`, `#toast`, etc.) on both HTML shells.
+- Produces: a second Playwright project (`Pixel 5`, mobile viewport) alongside today's
+  `chromium` desktop project.
+- Consumes: `tests/e2e/first-run.spec.ts` unmodified — its `page.goto("/")` is enough: the
+  entry router (Task 2) itself redirects a `Pixel 5` context's coarse pointer to `/touch.html`
+  before first paint, verified with a standalone check that `matchMedia("(pointer: coarse)")`
+  is `true` under that device preset. Identical element ids (`#form`, `#toast`, etc.) on both
+  HTML shells (spec §4) is what then lets the same locators resolve on both.
 
-- [ ] **Step 1:** Add a mobile-viewport Playwright project (e.g. `Pixel 5` or similar device
-      preset) targeting `/touch.html` to `playwright.config.ts`.
-- [ ] **Step 2:** Run `tests/e2e/first-run.spec.ts` against both projects — must pass unmodified
-      on both, proving parity and that the split didn't silently change desktop behavior.
-- [ ] Commit: code + CHANGELOG entry.
+- [x] **Step 1:** Added the `Pixel 5` Playwright project to `playwright.config.ts`.
+- [x] **Step 2:** First run against both projects surfaced a real, pre-existing gap: `.chrome`'s
+      title bar (8 controls in one row, sized for a pointer-width window) overflows a 393px
+      phone viewport (678px of content), pushing `#schema` off-screen and failing the click —
+      not a router/parity bug, a genuine touch-chrome CSS gap Task 3's stylesheet split should
+      have caught. Fixed narrowly in `web/src/touch/style.css` only (never touched by desktop):
+      `.chrome` wraps onto a second row (`flex-wrap: wrap`, `.spacer` forced to a full-width
+      break), `.search-box` drops its 160px `min-width`. `tests/e2e/first-run.spec.ts` then
+      passes unmodified on **both** `chromium` and `touch` (4/4), proving parity and that the
+      split didn't silently change desktop behavior.
+- [x] Commit: code + CHANGELOG entry.
 
 ## Task 7: Promote to reference
 

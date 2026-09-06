@@ -20,7 +20,14 @@ export default defineConfig({
   retries: 0,
   reporter: process.env.CI ? "list" : "line",
   use: { ...devices["Desktop Chrome"], baseURL: BUILD_URL },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // A coarse pointer here is not incidental scaffolding — it is the same signal
+  // `entry-desktop.js` reads, so `page.goto("/")` in every unmodified test in this directory
+  // is redirected to `/touch.html` before first paint by the entry router itself. Full parity,
+  // not a bespoke touch spec (spec `2026-09-05-touch-desktop-split.md` §7 Phase 6 / §8).
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "touch", use: { ...devices["Pixel 5"] } },
+  ],
   webServer: {
     // Both halves run from the repo root: `-w web` is a workspace filter, so it only works
     // there, and `--outDir web/dist` points the preview server at what the build just wrote.

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 2026-09-06 — Touch/desktop entry split plan, Task 6: added Playwright coverage for the touch
+  entry — a `Pixel 5` mobile-viewport project alongside `chromium` in `playwright.config.ts`.
+  `tests/e2e/first-run.spec.ts` runs unmodified against both: its `page.goto("/")` is enough,
+  since `entry-desktop.js`'s router (Task 2) redirects a coarse-pointer context to `/touch.html`
+  before first paint. The first run surfaced a real, pre-existing gap: `.chrome`'s title bar (8
+  controls sized for a pointer-width window) overflowed a 393px phone viewport, pushing
+  `#schema` off-screen. Fixed narrowly in `web/src/touch/style.css` only — `.chrome` wraps onto
+  a second row, `.search-box` drops its 160px `min-width` — never touching desktop's chrome.
+  `tests/e2e/first-run.spec.ts` now passes 4/4 across both projects.
 - 2026-09-06 — Touch/desktop entry split plan, Task 5: wired `Density::Touch` through
   `confyg-ffi` and `boundary.ts`. `crates/confyg-ffi::Handle` gains `with_density(density: &str)`
   (`js_name = withDensity`; `"phone"`/`"touch"`, else Desktop), keeping `Handle::new()`'s
