@@ -12,7 +12,7 @@ profiles × three formats and asserts identical bytes, and CI gives it its own j
 
 Every decision arrives in the `SetterSnapshot`. The renderer does not clamp Widgets, derive
 menu choices, validate literals, or score a search — it mounts what the IR names.
-`web/src/render.ts` `render(snapshot, root, ctx)` is the entire entry point.
+`web/src/render.ts` `render(snapshot, root, ctx, host)` is the entire entry point.
 
 A host addresses nodes by Path, rendered as `data-path` (`servers[0].host`), which is the same
 string `confyg_form::search::path_text` produces. Field labels are `<span class="field-label">`
@@ -130,6 +130,37 @@ with a `form.*` prefix, applied by `data-i18n` attributes and `t`/`tArgs`. Schem
 strings (`title`, `description`) belong to the Schema and are versioned with it; the two catalogs
 are not merged.
 
+## Two host entries: desktop and touch
+
+`web/entry-desktop.js`/`web/public/entry-desktop.js` and its reverse guard
+`web/public/entry-touch.js` pick one **Host entry** before first paint, on
+`matchMedia("(pointer: coarse)")` — desktop's `index.html` redirects a coarse pointer to
+`touch.html`, and touch's `touch.html` redirects a fine pointer back. `?ui=desktop`/`?ui=touch`
+overrides both, undocumented and dev-only: there is no user-facing toggle.
+
+`web/src/boot.ts` `boot(refs, host)` is the **Host entry**-agnostic half — Boundary load,
+`HostCtx` wiring, save/open/schema/search glue — shared by both entries' thin `main.ts`. Each
+entry supplies its own DOM refs and its own **Shell** (`DesktopShell` or `TouchShell`), which
+`render.ts` and `boot.ts` reach only through **ShellHost**, never through a concrete class.
+
+`DesktopShell` (`web/src/shell.ts`) sets `data-nav="columns"` unconditionally; `TouchShell`
+(`web/src/touch/shell.ts`) sets `data-nav="push"` unconditionally. Neither runs a
+`matchMedia` check of its own — the entry router already decided which **Host entry** loaded,
+so there is no runtime branch left to make. The two **Shell**s are independent files (no
+shared source beyond `applyPrefs`, the extracted preference-writer, and the `localStorage`
+prefs key); `web/src/style.css` (desktop) and `web/src/touch/style.css` both `@import`
+`tokens.css` and the shared `web/src/base.css`, then add only their own nav-specific rules.
+
+The one core-side difference is `HostProfile.density`: touch's `Boundary.load("touch")` calls
+`confyg-ffi::Handle.withDensity("touch")` instead of `new Handle()`. The other three
+`HostProfile` flags (`can_mask`/`can_slide`/`can_filter_options`) are unchanged from Desktop's —
+no host has yet asked for anything else. `Density` cannot reach a written byte
+(**Write-neutrality**); `confyg-session/tests/write_neutrality.rs` covers all three values.
+
+`tests/e2e/first-run.spec.ts` runs unmodified against a `chromium` (desktop) and a `Pixel 5`
+(touch) Playwright project: the router redirects the touch project's coarse pointer to
+`touch.html` on its own, so the same test proves parity rather than needing a second spec file.
+
 ## Host I/O
 
 The host owns what the session refuses to: files, the Schema fetch, and the theme.
@@ -148,16 +179,16 @@ picker is not automatable, and shimming `FileSystemFileHandle` would test the sh
 
 The session never fetches: a `SchemaFetchRequest` in a snapshot is resolved by the host and
 dispatched back as `loadSchema`. **v0.1's web host does not yet act on that field** — it is
-declared in `types.ts` and honored by `--example try`, but `main.ts` has no branch for it, so a
+declared in `types.ts` and honored by `--example try`, but `boot.ts` has no branch for it, so a
 document whose `$schema`/`#:schema` hint is the only thing naming its Schema renders no form.
 The two entry points that do work are the **Schema** button and the boot sample below.
 
 ## The boot sample
 
 A bare page load is a form, not an empty pane. `web/src/samples.ts` imports
-`confyg-session/examples/demo.{schema.json,toml}` as text (`?raw`) and `main.ts` dispatches two
-commands in order — `loadSchema`, then `open`, because the Schema is what makes a Form IR and an
-`open` without one renders nothing.
+`confyg-session/examples/demo.{schema.json,toml}` as text (`?raw`) and `web/src/boot.ts`
+dispatches two commands in order — `loadSchema`, then `open`, because the Schema is what makes
+a Form IR and an `open` without one renders nothing.
 
 It is deliberately **not a new fixture**. It is the pair `--example try` drives and
 `confyg-form/tests/snapshot.rs` pins, so the sample cannot drift from what the compiler is

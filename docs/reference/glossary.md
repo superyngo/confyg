@@ -396,3 +396,29 @@ _Avoid_: Filter (that is confy's document-filtering term), find, query.
 The type-to-filter affordance *inside* one **Widget**, for an `enum` past the count at which a
 plain menu stops being usable. Shares no component and no term with **Form search**.
 _Avoid_: Search, autocomplete, combobox (that is the control implementing it).
+
+## The web host
+
+**Host entry**:
+One HTML document plus the script it boots — `index.html` + `web/src/main.ts` (desktop),
+`touch.html` + `web/src/touch/main.ts` (touch). Exactly one entry is active per page load,
+chosen by `entry-desktop.js`/`entry-touch.js` before first paint on `pointer: coarse`. Named
+"Host entry," not "Entry," because "entry" already names a **Map group** member
+(`AddMapEntry`/`RemoveMapEntry`) — a different concept the word must not collide with.
+_Avoid_: Entry (ambiguous with Map group entry), page, view.
+
+**Shell**:
+The chrome around the form — dirty state, violation chip, app preferences, navigation mode —
+never the form itself. `DesktopShell` (`web/src/shell.ts`) and `TouchShell`
+(`web/src/touch/shell.ts`) are independent per **Host entry**; neither shares source with the
+other beyond the extracted `applyPrefs` preference-writer and the shared `localStorage` key.
+_Avoid_: App, chrome (a synonym in prose, but never a type name), host (too broad — the Shell is
+part of the host, not all of it).
+
+**ShellHost**:
+The small interface (`web/src/shell-host.ts`) `render.ts` and `boot.ts` depend on instead of a
+concrete **Shell** class, so `DesktopShell` and `TouchShell` can each satisfy it. Scoped to
+exactly four methods — `afterRender`, `showDetail`, `sectionShown`, `closeEntryDrawer` — not
+speculatively widened for a hook no **Host entry** needs yet.
+_Avoid_: Surface (confy's name for its own, unrelated seam pattern — see
+[`presentation.md`](presentation.md)), adapter, interface (too generic).

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 2026-09-06 — Touch/desktop entry split plan, Task 7 (final): promoted to reference. Added a
+  "Two host entries: desktop and touch" section to `docs/reference/presentation.md` describing
+  the entry router, `boot.ts`, `ShellHost`/`DesktopShell`/`TouchShell`, the stylesheet split,
+  and `Density::Touch`; fixed two stale `main.ts` references the split left behind. Promoted
+  `Host entry`, `Shell`, `ShellHost` to `docs/reference/glossary.md` under a new "The web host"
+  section, per the spec's own lifecycle rule. Flipped
+  `docs/spec/2026-09-05-touch-desktop-split.md` and its plan's `Status:` to
+  `Shipped (2026-09-06)`; moved the plan's `docs/plan/README.md` row to "Landed" — the
+  touch/desktop entry split (ADR 0006) is complete, 7/7 tasks.
 - 2026-09-06 — Touch/desktop entry split plan, Task 6: added Playwright coverage for the touch
   entry — a `Pixel 5` mobile-viewport project alongside `chromium` in `playwright.config.ts`.
   `tests/e2e/first-run.spec.ts` runs unmodified against both: its `page.goto("/")` is enough,

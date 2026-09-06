@@ -1,5 +1,5 @@
 # Touch/desktop entry split — implementation plan
-Status: In progress — 6/7 tasks
+Status: Shipped (2026-09-06)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `subagent-driven-development` (recommended) or
 > `executing-plans` to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for
@@ -204,11 +204,14 @@ is visible in both shells.
   `docs/reference/glossary.md` (promote `Host entry`, `ShellHost`, `Shell` — spec §2)
 - Edit: `docs/plan/README.md` (move this plan from "In progress" to "Landed")
 
-- [ ] **Step 1:** Write the canonical current-state description from spec §4's table (now
-      accurate to what actually shipped, which may have drifted from the plan in small ways —
-      reconcile against the real files, don't just copy the spec).
-- [ ] **Step 2:** Promote `Host entry`/`ShellHost`/`Shell` glossary entries per spec §9's
-      lifecycle rule (only now, not earlier).
-- [ ] **Step 3:** Flip spec `Status:` to `Shipped (YYYY-MM-DD)`; update this plan's own `Status:`
-      to `Shipped`; move its `docs/plan/README.md` row to "Landed".
-- [ ] Commit: docs only + CHANGELOG entry.
+- [x] **Step 1:** Added a "Two host entries: desktop and touch" section to
+      `docs/reference/presentation.md`, reconciled against the shipped files (`boot.ts`,
+      `shell-host.ts`, `DesktopShell`/`TouchShell`, `base.css`, the `Density::Touch` wiring);
+      fixed two stale `main.ts` references the split left behind (render's entry point
+      signature, the boot-sample paragraph) to name `boot.ts` instead.
+- [x] **Step 2:** Promoted `Host entry`, `Shell`, `ShellHost` to `docs/reference/glossary.md`
+      under a new "The web host" section, per spec §9's lifecycle rule.
+- [x] **Step 3:** Flipped `docs/spec/2026-09-05-touch-desktop-split.md`'s `Status:` to
+      `Shipped (2026-09-06)`; this plan's own `Status:` to `Shipped (2026-09-06)`; moved its
+      `docs/plan/README.md` row to "Landed".
+- [x] Commit: docs only + CHANGELOG entry.

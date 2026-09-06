@@ -1,5 +1,5 @@
 # Touch/desktop entry split — shared / reused / independent comparison
-Status: Approved
+Status: Shipped (2026-09-06)
 
 The decision is [ADR 0006](../adr/0006-touch-desktop-dedicated-entry.md): touch gets a dedicated
 entry (`touch.html` + `web/src/touch/`), not the `pointer: coarse` / `data-nav="push"` bolt-on
