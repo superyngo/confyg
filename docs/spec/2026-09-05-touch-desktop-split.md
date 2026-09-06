@@ -1,5 +1,5 @@
 # Touch/desktop entry split — shared / reused / independent comparison
-Status: Draft
+Status: Approved
 
 The decision is [ADR 0006](../adr/0006-touch-desktop-dedicated-entry.md): touch gets a dedicated
 entry (`touch.html` + `web/src/touch/`), not the `pointer: coarse` / `data-nav="push"` bolt-on
@@ -50,19 +50,28 @@ touch module," not "as large":
 Not yet glossary entries (nothing here is shipped); on approval they migrate to
 `docs/reference/glossary.md` per `wens-dev-principles docs`.
 
-- **Entry**: one HTML document plus the script it boots (`index.html` + `main.ts`,
-  `touch.html` + `web/src/touch/main.ts`). Exactly one entry is active per page load.
+- **Host entry**: one HTML document plus the script it boots (`index.html` + `main.ts`,
+  `touch.html` + `web/src/touch/main.ts`). Exactly one entry is active per page load. Named
+  "Host entry," not "Entry," because the glossary already uses "entry" for a **Map group**
+  member (`AddMapEntry`/`RemoveMapEntry`) — a different concept the word must not collide with.
 - **Shell** (as `shell.ts` already uses it): the chrome around the form — dirty state, violation
   chip, app preferences, navigation mode — never the form itself.
 - **ShellHost**: the small interface `render.ts` and the boot sequence depend on instead of a
-  concrete `Shell` class, so a `DesktopShell` and a `TouchShell` can each satisfy it.
+  concrete `Shell` class, so a `DesktopShell` and a `TouchShell` can each satisfy it. Scoped to
+  exactly the four call sites §4 lists for Phase 1 (`afterRender`/`showDetail`/`sectionShown`/
+  `closeEntryDrawer`); not speculatively widened for touch-only hooks that don't exist yet.
+  Phase 3 adds to it only if `TouchShell` turns out to need something.
+
+`"Surface"` in §3/§4 below is a citation of confy's own name for its `panel.ts`/
+`convert-dialog.ts` seam pattern, not a confyg term — confyg's name for this seam is
+`ShellHost`. Left in quotes to keep that clear.
 
 ## 3. Classification legend
 
 | Category | Meaning |
 |---|---|
 | 共用 **Shared** | Identical module, imported verbatim by both entries. Zero fork, zero host branching inside it. |
-| 沿用 **Reused/adapted** | The logic is one module, but a small seam (an interface, a container-agnostic "Surface") lets each host supply host-specific wiring without forking the logic. |
+| 沿用 **Reused/adapted** | The logic is one module, but a small seam (an interface, confy calls the same pattern a "Surface") lets each host supply host-specific wiring without forking the logic. |
 | 獨立實現 **Independent** | Genuinely separate file per host. No source is shared. |
 
 ## 4. Current-state inventory and target classification
@@ -88,8 +97,8 @@ Not yet glossary entries (nothing here is shipped); on approval they migrate to
 | `index.html` | One file carries the desktop title-bar chrome and the touch-only `#touch-bar`/`#touch-back` markup (`hidden` by default, shown by `shell.ts`) | 獨立實現 | Phase 2/3: `index.html` drops the touch-bar markup. A new `touch.html` carries touch's own chrome (back bar first, gear panel). Both keep the element ids `boot()` looks up: `#form`, `#toast`, `#results`, `#search`, `#save`, `#open`, `#schema`. |
 | `style.css` | One 894-line cascade; ~115 lines (`style.css:773-888`, the "narrow width" and "pushed-page shell" blocks) are nav-conditional; the rest (field grid, widgets, summary, search, badges) is shared visual language | Split: 獨立實現 for the nav-conditional ~13%, 共用 for the rest | Phase 3: factor the shared ~87% into a base partial both `style.css` (desktop) and a new `web/src/touch/style.css` `@import`; delete the `data-nav` / `pointer: coarse` conditionals in favor of each file's own unconditional default. |
 | `tokens.css` | Already host-agnostic; `--hit`/`--row-h` already vary by `@media (pointer: coarse)` | 共用 | Unchanged — this is the design's sanctioned "downward-only host/user preference on the Degradation ladder" (ADR 0004), not the bolt-on this record corrects. |
-| `main.ts`'s service-worker registration | None | 共用 | Both entries register `/sw.js`. |
-| *(new)* `entry-desktop.js` / `entry-touch.js` | — | 獨立實現 (paired) | New. Ported near-verbatim from confy's own two files (paths adjusted); the reverse-guard pattern (`?ui=` override, `matchMedia('(pointer:coarse)')` default) is the whole file in each case. |
+| `main.ts`'s service-worker registration | None | 共用 | Both entries register `/sw.js`. `public/sw.js`'s `SHELL` precache array (`["/", "/index.html", "/manifest.webmanifest"]`) gains `"/touch.html"` in Phase 2 so the touch entry is offline-precached too; `manifest.webmanifest`'s single `start_url`/`scope` is left as-is — the router redirecting before first paint means installing from `/` and landing on `touch.html` at runtime is acceptable for v1. |
+| *(new)* `entry-desktop.js` / `entry-touch.js` | — | 獨立實現 (paired) | New. Ported near-verbatim from confy's own two files (paths adjusted); the reverse-guard pattern (`?ui=` override, `matchMedia('(pointer:coarse)')` default) is the whole file in each case. `?ui=` stays an undocumented URL param for developer testing only — no preferences-panel toggle exposed to users in this split. |
 | *(new)* `boot.ts` | — | 共用 (new home for `main.ts`'s host-agnostic half) | New. |
 | *(new)* `shell-host.ts` (the `ShellHost` interface) | — | 共用 (contract only) | New. |
 
@@ -145,7 +154,11 @@ the first caller with a reason to ask for it:
 
 - `confyg-ffi::Handle` gains a second constructor (or a constructor argument) accepting a
   `HostProfile` (or its `density` alone, if the other three fields stay hardcoded until a host
-  actually needs to vary them).
+  actually needs to vary them). **Decided:** only `density` varies for this split — the touch
+  entry passes `Density::Touch` with `can_mask`/`can_slide`/`can_filter_options` copied verbatim
+  from today's Desktop default (`true`/`true`/`false`). Whether touch genuinely warrants
+  different values for those three (e.g. `can_filter_options: false` because there's no physical
+  keyboard) is a real UX question left for a future record, not decided as a byproduct here.
 - `boundary.ts`'s `Boundary.load()` takes an optional profile; desktop passes nothing (today's
   `Density::Desktop` default, unchanged), touch passes `Density::Touch`.
 - This is additive FFI surface, not new core logic, and `write_neutrality.rs` already proves
@@ -171,30 +184,45 @@ itself a task breakdown.
 - **Phase 3 — split the shell and the stylesheet.** `DesktopShell` / `TouchShell` behind
   `ShellHost`; `style.css` factored into a shared base plus two thin per-host files, deleting the
   `data-nav` / `pointer: coarse` conditionals.
-- **Phase 4 (optional) — extract `prefs-panel.ts`** out of `Shell`, consumed by both shells.
+- **Phase 4 (deferred, not in this pass) — extract `prefs-panel.ts`** out of `Shell`, consumed by
+  both shells. Ship Phases 0.5–3 and 5–6 first with each shell keeping a short-term duplicated
+  preferences-panel copy; revisit once the duplication is visible in both files rather than
+  speculatively now.
 - **Phase 5 — wire `Density::Touch`** through `confyg-ffi` and `boundary.ts` (§6) for the touch
   entry only.
 - **Phase 6 — add Playwright coverage** for `touch.html` (a mobile-viewport project;
-  `playwright.config.ts` has only `chromium` desktop today).
+  `playwright.config.ts` has only `chromium` desktop today). Full parity, not a separate
+  touch-only spec file: run the existing `tests/e2e/first-run.spec.ts` unmodified against both
+  the desktop and the new mobile-viewport project, since §4 keeps the same element ids
+  (`#form`, `#toast`, etc.) on both HTML shells — this also proves the split didn't silently
+  change desktop behavior.
 - **Phase 7 — promote to reference.** Once shipped, this record's §4 table graduates into
   `docs/reference/` (a new file, or a section of `presentation.md`) as the canonical current-state
   description, mirroring confy's `CHROME.md`/`WEBUI.md` pattern; this spec's `Status:` becomes
   `Shipped (YYYY-MM-DD)`.
 
-## 8. Open decisions requiring confirmation before implementation starts
+## 8. Decisions confirmed
 
-1. **"Touch-specific framework" reading.** This record and ADR 0006 read the request as a
-   dedicated **vanilla TS/DOM module** — matching confy's own `web/touch/`, not a third-party UI
-   framework. Confirm this before Phase 2.
-2. **Module naming/layout** (`web/src/touch/` vs. a `web/touch/` sibling to `src/`) — §5's
-   proposal is not load-bearing.
-3. **Incremental landing vs. one branch.** Recommended: land Phases 0.5–6 as separate, individually
-   testable commits/PRs against `main`, each independently revertable, rather than one large
-   branch — matches this repository's existing one-task-per-commit convention.
-4. **Timing relative to other open work** (e.g. the Unset-consolidation gap CHANGELOG's Known
-   issues already track). Recommended: independent — no file overlap with this split.
-5. **Phase 4 (`prefs-panel.ts` extraction) in scope now or deferred.** Not required for the split
-   to work; a nice-to-have dedup.
+Resolved in a `grilling`/`domain-modeling` review session before implementation starts; kept
+here rather than deleted so the record shows what was actually a choice.
+
+1. **"Touch-specific framework" reading.** Confirmed: dedicated **vanilla TS/DOM module** —
+   matching confy's own `web/touch/`, not a third-party UI framework.
+2. **Module naming/layout.** Confirmed: `web/src/touch/`, not a `web/touch/` sibling to `src/`.
+3. **Incremental landing.** Confirmed: Phases 0.5–6 land as separate, individually testable
+   commits/PRs against `main`, each independently revertable — matches this repository's
+   one-task-per-commit convention.
+4. **Timing relative to other open work.** Confirmed independent. Verified, not just asserted:
+   the Unset-consolidation gap (CHANGELOG Known issues, 2026-09-05) lives entirely in
+   `web/src/widgets/{common,text,stepper,slider,radio}.ts`, all classified 共用/Unchanged in §4
+   — this split never edits those files.
+5. **Phase 4 (`prefs-panel.ts` extraction) scope.** Confirmed deferred — not in this pass; see
+   §7 Phase 4.
+6. **`HostProfile` flags for the touch entry (§6).** Confirmed: only `density` varies; the other
+   three flags copy Desktop's values verbatim. Evaluating real touch-appropriate values is a
+   separate future UX decision.
+7. **`?ui=` override surface.** Confirmed: undocumented URL param for developer testing only;
+   no user-facing preferences toggle in this split.
 
 ## 9. Lifecycle
 

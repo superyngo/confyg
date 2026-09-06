@@ -35,6 +35,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   derivation through to downgrade-only user preference, discovery mirroring §6, no `hidden`, and
   unknown profile keys as Notices; supersedes the glossary's rejection of a separate UI-schema
   file, with the sidecar itself scheduled for v0.2).
+- 2026-09-06 — Touch/desktop entry split spec (`docs/spec/2026-09-05-touch-desktop-split.md`,
+  ADR 0006) grilled and approved: renamed its `Entry` term to `Host entry` to avoid colliding
+  with the existing Map-entry vocabulary; scoped `ShellHost` to its 4 known call sites; decided
+  the touch entry's `HostProfile` varies only `density` (other flags copied from Desktop);
+  decided `?ui=` stays a dev-only override with no user-facing toggle; deferred
+  `prefs-panel.ts` extraction; decided Playwright coverage runs the existing `first-run.spec.ts`
+  against both desktop and a new mobile-viewport project for full parity. Added the
+  implementation breakdown `docs/plan/2026-09-05-touch-desktop-split.md` (7 tasks matching the
+  spec's migration phases).
 - 2026-09-04 — Added `docs/spec/2026-09-04-presentation-layers-design.md`: the eight-layer table
   and resolution chain, the nine-member Presentation vocabulary, Widget resolution with the
   Option filter thresholds, `HostProfile` and a Degradation ladder per Widget, Partition's closed
