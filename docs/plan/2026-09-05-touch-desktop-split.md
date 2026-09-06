@@ -1,5 +1,5 @@
 # Touch/desktop entry split — implementation plan
-Status: In progress — 2/7 tasks
+Status: In progress — 3/7 tasks
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use `subagent-driven-development` (recommended) or
 > `executing-plans` to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for
@@ -69,7 +69,7 @@ is visible in both shells.
 ## Task 2: Add the entry router
 
 **Files:**
-- Create: `web/touch.html`, `web/entry-desktop.js`, `web/entry-touch.js`
+- Create: `web/touch.html`, `web/public/entry-desktop.js`, `web/public/entry-touch.js`
 - Edit: `web/vite.config.ts`, `web/public/sw.js`
 
 **Interfaces:**
@@ -77,18 +77,21 @@ is visible in both shells.
   Phase 2 — to prove the router alone before touch-specific code exists).
 - Consumes: none new.
 
-- [ ] **Step 1:** Port `entry-desktop.js`/`entry-touch.js` near-verbatim from confy's own two
-      files (paths adjusted) — the reverse-guard pattern (`?ui=` override, undocumented dev-only
-      per spec §8.7; `matchMedia('(pointer:coarse)')` default) is the whole file in each case.
-- [ ] **Step 2:** Add `touch.html` pointing at `main.ts` unchanged (no `touch/` module yet).
-- [ ] **Step 3:** Add the second Rollup HTML input to `vite.config.ts`.
-- [ ] **Step 4:** Add `"/touch.html"` to `public/sw.js`'s `SHELL` precache array (spec §4's
-      service-worker row). Leave `manifest.webmanifest`'s `start_url`/`scope` as `/` (spec §8.7 —
+- [x] **Step 1:** Wrote `entry-desktop.js`/`entry-touch.js` implementing the reverse-guard
+      pattern (`?ui=` override, undocumented dev-only per spec §8.7; `matchMedia('(pointer:
+      coarse)')` default) directly — no local confy checkout was available to port from
+      verbatim; placed under `web/public/` (not `web/`) so Vite copies them to the dist root
+      unbundled, matching how `sw.js`/`manifest.webmanifest` are already served.
+- [x] **Step 2:** Added `touch.html` pointing at `main.ts` unchanged (no `touch/` module yet).
+- [x] **Step 3:** Added the second Rollup HTML input to `vite.config.ts`.
+- [x] **Step 4:** Added `"/touch.html"` to `public/sw.js`'s `SHELL` precache array (spec §4's
+      service-worker row). Left `manifest.webmanifest`'s `start_url`/`scope` as `/` (spec §8.7 —
       decided, not revisited here).
-- [ ] **Step 5:** Manually verify `/touch.html` loads and behaves identically to `/` (same
-      `main.ts`/`shell.ts`); run `tests/e2e/first-run.spec.ts` against `/` — must still pass
-      unmodified.
-- [ ] Commit: code + CHANGELOG entry.
+- [x] **Step 5:** Manually verified with Playwright contexts: a fine-pointer context on
+      `/touch.html` redirects to `/`; a coarse-pointer context on `/` redirects to `/touch.html`;
+      a coarse-pointer context on `/touch.html` loads directly (`#form` renders). Ran
+      `tests/e2e/first-run.spec.ts` against `/` (chromium desktop project) — passes unmodified.
+- [x] Commit: code + CHANGELOG entry.
 
 ## Task 3: Split the shell and the stylesheet
 

@@ -3,7 +3,7 @@
 //   - everything else is network-first with a cache fallback, so a stale wasm bundle can
 //     never outlive a deploy while still working on a plane
 const VERSION = "confyg-v1";
-const SHELL = ["/", "/index.html", "/manifest.webmanifest"];
+const SHELL = ["/", "/index.html", "/touch.html", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)));

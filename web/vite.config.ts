@@ -43,7 +43,17 @@ function wasmPkg(): Plugin {
 
 export default defineConfig({
   plugins: [wasmPkg()],
-  build: { target: "es2022", outDir: "dist" },
+  build: {
+    target: "es2022",
+    outDir: "dist",
+    rollupOptions: {
+      input: {
+        main: resolve(fileURLToPath(new URL(".", import.meta.url)), "index.html"),
+        touch: resolve(fileURLToPath(new URL(".", import.meta.url)), "touch.html"),
+      },
+    },
+  },
+  preview: { host: "0.0.0.0", allowedHosts: ["macmini"] },
   test: {
     globals: true,
     environment: "jsdom",

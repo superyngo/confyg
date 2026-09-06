@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 2026-09-06 — Touch/desktop entry split plan, Task 2: added the entry router —
+  `web/public/entry-desktop.js`/`web/public/entry-touch.js` implement the reverse-guard pattern
+  (`matchMedia("(pointer: coarse)")` default, undocumented dev-only `?ui=` override per spec
+  §8.7) and a new `web/touch.html` (boots the same `main.ts`/`shell.ts` as `/` for now, per
+  Phase 2 scope); `vite.config.ts` gained a second Rollup HTML input; `public/sw.js`'s `SHELL`
+  precache array gained `"/touch.html"`. Manually verified the redirect matrix with Playwright
+  contexts (fine pointer on `/touch.html` → `/`; coarse pointer on `/` → `/touch.html`; coarse
+  pointer on `/touch.html` loads directly). `tests/e2e/first-run.spec.ts` passes unmodified.
 - 2026-09-06 — Touch/desktop entry split plan, Task 1: added `web/src/shell-host.ts`'s
   `ShellHost` interface (`afterRender`/`showDetail`/`sectionShown`/`closeEntryDrawer`) and
   decoupled `web/src/render.ts` from importing the concrete `shell` singleton directly — it now
