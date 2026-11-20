@@ -3,6 +3,8 @@
 Entry point for all documentation. Root-level files (`README.md`, `CHANGELOG.md`, `LICENSE`,
 `PRIVACY.md`) stay here; everything else lives under `docs/`.
 
+Profile: dev
+
 | Folder | Holds | Canonical? | Lifecycle |
 |---|---|---|---|
 | [`docs/reference/`](docs/reference/README.md) | Current behavior: glossary, per-subsystem contracts | Yes — the only source of truth | Kept in sync with the code |

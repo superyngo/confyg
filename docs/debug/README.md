@@ -12,5 +12,8 @@ _None._
 
 | Date | Document | Status |
 |---|---|---|
-| 2026-09-04 | [Phase A hands-on findings](2026-09-04-phase-a-hands-on-findings.md) | Resolved (finding 2 deferred to upstream bill item 3) |
-| 2026-09-04 | [Real-binary check findings](2026-09-04-real-binary-findings.md) | Resolved (finding 3 open: a commit-on-blur edit swallows the next click) |
+| 2026-09-04 | [Phase A hands-on findings](2026-09-04-phase-a-hands-on-findings.md) | Resolved (2026-09-04) |
+| 2026-09-04 | [Real-binary check findings](2026-09-04-real-binary-findings.md) | Resolved (2026-09-04) |
+
+Open caveats: phase A finding 2 is deferred to upstream bill item 3; real-binary finding 3
+(a commit-on-blur edit swallows the next click) is still open.

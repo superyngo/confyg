@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-11-20
+
+- docs: align with repo-docs rules — `Profile: dev` in CONTEXT, dated `Status:` lines on specs,
+  plan, and debug records, folder index statuses matching the files, ADR statuses
+  `Implemented (YYYY-MM-DD)`.
+
 ### Added
 
 - 2026-09-06 — Touch/desktop entry split plan, Task 7 (final): promoted to reference. Added a

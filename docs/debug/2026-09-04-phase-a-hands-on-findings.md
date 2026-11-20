@@ -1,6 +1,7 @@
 # Phase A hands-on findings
+Status: Resolved (2026-09-04)
 
-Status: Resolved — finding 1 fixed, finding 2 deferred to upstream bill item 3
+Finding 1 fixed, finding 2 deferred to upstream bill item 3.
 
 Two defects found by driving the real session by hand after Phase A landed (16/16 tasks, suite
 green). Neither is a test failure — both are cases where the shipped behavior is defensible but

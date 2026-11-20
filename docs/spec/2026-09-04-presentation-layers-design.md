@@ -1,5 +1,7 @@
 # confyg presentation layers
-Status: Superseded in part — every v0.1 behavior described here now lives in
+Status: Shipped (2026-09-04)
+
+Superseded in part: every v0.1 behavior described here now lives in
 [`../reference/presentation.md`](../reference/presentation.md), which is canonical. The two open
 questions in §10 (the `Density` mapping, the carrier for preset value sets) and the Partitions
 v0.1 does not implement stay this record's.

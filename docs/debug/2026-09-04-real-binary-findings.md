@@ -1,6 +1,7 @@
 # Real-binary check findings
+Status: Resolved (2026-09-04)
 
-Status: Resolved — findings 1 and 2 fixed, finding 3 open
+Findings 1 and 2 fixed, finding 3 open.
 
 What design §11 item 5 found when the flow was finally run on the actual web build: **open →
 add a Repeat item → set values → Unset one → save**, against schemastore's real `.eslintrc`

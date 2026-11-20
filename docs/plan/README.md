@@ -15,5 +15,5 @@ A plan shares its kebab title with the spec it derives from, so the pair matches
 
 | Date | Document | Status |
 |---|---|---|
-| 2026-09-04 | [confyg v0.1 implementation plan](2026-09-04-confyg-design.md) | Shipped — 20/20 tasks |
-| 2026-09-05 | [touch/desktop entry split](2026-09-05-touch-desktop-split.md) | Shipped — 7/7 tasks |
+| 2026-09-04 | [confyg v0.1 implementation plan](2026-09-04-confyg-design.md) | Shipped (2026-09-04) |
+| 2026-09-05 | [touch/desktop entry split](2026-09-05-touch-desktop-split.md) | Shipped (2026-09-06) |

@@ -1,5 +1,7 @@
 # confyg design
-Status: Superseded in part — every v0.1 behavior described here now lives in
+Status: Shipped (2026-09-04)
+
+Superseded in part: every v0.1 behavior described here now lives in
 [`../reference/form-ir.md`](../reference/form-ir.md),
 [`../reference/intents.md`](../reference/intents.md) and
 [`../reference/crates.md`](../reference/crates.md), which are canonical. The v0.2+ tiers, the
