@@ -14,7 +14,7 @@ lifecycle); once shipped, its current-state half graduates into `docs/reference/
 `matchMedia("(pointer: coarse)")` and `(max-width: 720px)`; `web/src/style.css` carries both the
 desktop three-column master-detail layout and the touch push-page/back-bar rules in one 894-line
 cascade gated by that attribute (`style.css:773-888`, the "pushed-page shell" block). This shipped
-2026-09-05 as part of the settings-template redesign (`docs/spec/20260904-redesign/PATCH.md`).
+2026-09-05 as part of the settings-template redesign (`docs/spec/2026-09-04-redesign.md`).
 
 This is the pattern `wens-dev-principles ui 2` names as the failure mode to avoid — "Bolting touch
 affordances onto desktop chrome behind `pointer: coarse` media checks produces a low-fidelity

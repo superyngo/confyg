@@ -15,6 +15,7 @@ investigation — lives in [`../spec/`](../spec/README.md), [`../plan/`](../plan
   and what comes back.
 - **[presentation.md](presentation.md)** — the host contract: Partition, widgets, Repeat cards,
   the summary, **Form search**, Appearance, and host file I/O.
+- **[privacy.md](privacy.md)** — the privacy policy: no personal data collected.
 
 Machine-checked: `cargo test --workspace`.
 

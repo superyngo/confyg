@@ -9,7 +9,7 @@ module), routed to by a pointer-capability check that runs before first paint
 (`entry-desktop.js` / `entry-touch.js`), rather than by branching the single `index.html` /
 `main.ts` / `shell.ts` / `style.css` on `pointer: coarse` and viewport width, as the 2026-09-04
 settings-template redesign shipped on 2026-09-05 currently does (`body[data-nav="push"]`,
-`docs/spec/20260904-redesign/PATCH.md`).
+`docs/spec/2026-09-04-redesign.md`).
 
 Everything already host-agnostic stays exactly where it is and is imported by both entries
 unchanged: the WASM boundary (`boundary.ts`), the Form IR types (`types.ts`), **Partition**

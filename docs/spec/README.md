@@ -14,7 +14,7 @@ _None._
 |---|---|---|
 | 2026-09-03 | [confyg design](2026-09-03-confyg-design.md) | Shipped (2026-09-04) |
 | 2026-09-04 | [confyg presentation layers](2026-09-04-presentation-layers-design.md) | Shipped (2026-09-04) |
-| 2026-09-04 | [confyg settings-template redesign](20260904-redesign/PATCH.md) | Applied to `web/` and `i18n/` 2026-09-05; `../reference/presentation.md` not yet updated — see [`../plan/BACKLOG.md`](../plan/BACKLOG.md) B2/B5 for the Unset-consolidation gap |
+| 2026-09-04 | [confyg settings-template redesign](2026-09-04-redesign.md) | Applied to `web/` and `i18n/` 2026-09-05; `../reference/presentation.md` not yet updated — see [`../plan/BACKLOG.md`](../plan/BACKLOG.md) B2/B5 for the Unset-consolidation gap |
 | 2026-09-05 | [Touch/desktop entry split](2026-09-05-touch-desktop-split.md) | Shipped (2026-09-06) |
 
 Both 2026-09-03/04 designs are superseded in part: v0.1 behavior now lives in

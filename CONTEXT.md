@@ -1,7 +1,7 @@
 # CONTEXT
 
-Entry point for all documentation. Root-level files (`README.md`, `CHANGELOG.md`, `LICENSE`,
-`PRIVACY.md`) stay here; everything else lives under `docs/`.
+Entry point for all documentation. Root-level files (`README.md`, `CHANGELOG.md`, `LICENSE`)
+stay here; everything else lives under `docs/`.
 
 Profile: dev
 

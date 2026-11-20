@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 2026-11-20
 
+- docs: repo-docs wave C — redesign patch set moved to `docs/spec/2026-09-04-redesign.md` with
+  its mirror files in `docs/spec/2026-09-04-redesign/`; `PRIVACY.md` moved to
+  `docs/reference/privacy.md`; citations repaired.
 - docs: repo-docs wave B — new living `docs/plan/BACKLOG.md` (Known issues, open debug
   caveats, upstream bill, spec §10 questions); ADR index no longer allows errata in ADRs;
   `.gitignore` narrows scratch to `docs/tmp/*-scratch/`; CONTEXT tmp lifecycle and backlog link.
@@ -388,7 +391,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Recorded in
   [`docs/debug/2026-09-04-real-binary-findings.md`](docs/debug/2026-09-04-real-binary-findings.md).
 - 2026-09-05 — Applied the settings-template redesign spec
-  ([`docs/spec/20260904-redesign/PATCH.md`](docs/spec/20260904-redesign/PATCH.md)) to `web/` and
+  ([`docs/spec/2026-09-04-redesign.md`](docs/spec/2026-09-04-redesign.md)) to `web/` and
   `i18n/`: file chip, dirty dot, violation chip, and a gear app menu (appearance, language,
   density, text size, about/diagnostics, install) replace the old theme button; a Field row is
   now a three-track grid with a `...` menu (`rowmenu.ts`) holding Unset, copy value, raw
@@ -482,7 +485,7 @@ History only — open items now live in [`docs/plan/BACKLOG.md`](docs/plan/BACKL
   finding 3. `tests/e2e/first-run.spec.ts` sequences around it with an explicit `blur()` and says
   so at the call site.
 - 2026-09-05 — The redesign's own goal — "a row is label | control | one 30px button"
-  (`docs/spec/20260904-redesign/PATCH.md`) — is not fully realized: `PATCH.md` never lists
+  (`docs/spec/2026-09-04-redesign.md`) — is not fully realized: `PATCH.md` never lists
   `web/src/widgets/{common,text,stepper,slider,radio}.ts` for change, so `unsetButton` (ADR
   0003) still renders its own `.unset` button inside `.control` on every widget that had one,
   alongside the new `...` menu's own Unset item — two ways to unset the same field rather than
