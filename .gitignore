@@ -10,8 +10,8 @@ pkg/
 test-results/
 playwright-report/
 
-# Scratch: CONTEXT.md's lifecycle table already treats this as throwaway.
-docs/tmp/
+# Scratch: per-agent scratch dirs are throwaway; docs/tmp/archive/ stays committed.
+docs/tmp/*-scratch/
 
 .DS_Store
 Thumbs.db

@@ -15,4 +15,3 @@ Current behavior lives in [`../reference/`](../reference/README.md).
 
 Volatile facts an ADR happens to quote — a dependency pin, a line count, an upstream API shape —
 are corrected in [`../reference/upstream.md`](../reference/upstream.md), not by editing the ADR.
-An ADR may carry a dated erratum line pointing there; its decision and rationale stay immutable.

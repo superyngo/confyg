@@ -13,7 +13,7 @@ Profile: dev
 | [`docs/plan/`](docs/plan/README.md) | Task-by-task implementation plans derived from a spec | No — historical | Frozen once shipped; only `Status:` changes |
 | [`docs/debug/`](docs/debug/README.md) | Handoff notes from investigations, with repro scripts | No — historical | Frozen once resolved; only `Status:` changes |
 | [`docs/audit/`](docs/audit/README.md) | Point-in-time sweeps for bugs, dead code, inconsistency | No — historical | Frozen once findings are addressed; only `Status:` changes |
-| `docs/tmp/` | Scratch | No | Archived to `tmp/archive/YYYY-MM.tar.gz` when stale |
+| `docs/tmp/` | Scratch (`*-scratch/` is gitignored) | No | Swept at each release; archived to `docs/tmp/archive/YYYY-MM.tar.gz` |
 
 ## Reading order
 
@@ -23,7 +23,8 @@ Profile: dev
 3. [`docs/reference/README.md`](docs/reference/README.md) — the subsystem map.
 4. [`docs/adr/README.md`](docs/adr/README.md) — why the shape is what it is.
 5. [`docs/spec/README.md`](docs/spec/README.md) — the design records.
-6. `CHANGELOG.md` — what changed recently.
+6. [`docs/plan/BACKLOG.md`](docs/plan/BACKLOG.md) — open work.
+7. `CHANGELOG.md` — what changed recently.
 
 ## Upstream
 

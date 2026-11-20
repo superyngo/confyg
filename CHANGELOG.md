@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 2026-11-20
 
+- docs: repo-docs wave B — new living `docs/plan/BACKLOG.md` (Known issues, open debug
+  caveats, upstream bill, spec §10 questions); ADR index no longer allows errata in ADRs;
+  `.gitignore` narrows scratch to `docs/tmp/*-scratch/`; CONTEXT tmp lifecycle and backlog link.
 - docs: align with repo-docs rules — `Profile: dev` in CONTEXT, dated `Status:` lines on specs,
   plan, and debug records, folder index statuses matching the files, ADR statuses
   `Implemented (YYYY-MM-DD)`.
@@ -467,6 +470,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The pattern now skips comment lines and still catches both a `use` and an inline path.
 
 ### Known issues
+
+History only — open items now live in [`docs/plan/BACKLOG.md`](docs/plan/BACKLOG.md).
 
 - 2026-09-04 — A text edit committed on blur swallows the next click: the commit re-renders the
   form by replacing `#form`'s children, so a control clicked immediately after typing is

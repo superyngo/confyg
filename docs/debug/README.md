@@ -17,3 +17,4 @@ _None._
 
 Open caveats: phase A finding 2 is deferred to upstream bill item 3; real-binary finding 3
 (a commit-on-blur edit swallows the next click) is still open.
+Both are tracked in [`../plan/BACKLOG.md`](../plan/BACKLOG.md) (B1; upstream bill item 3).

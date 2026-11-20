@@ -6,6 +6,8 @@ frozen once shipped, dated by when it was written, never rewritten. Current beha
 
 A plan shares its kebab title with the spec it derives from, so the pair matches by name.
 
+The living record of open work is [`BACKLOG.md`](BACKLOG.md).
+
 ## In progress
 
 | Date | Document | Status |
